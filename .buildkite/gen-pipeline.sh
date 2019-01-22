@@ -3,6 +3,9 @@
 # exit immediately on failure, or if an undefined variable is used
 set -eu
 
+# our repository in AWS
+repository=091976041309.dkr.ecr.us-east-1.amazonaws.com/buildkite
+
 # list of all the tests
 tests=( \
        test-cpu-openmpi-py2_7-tf1_1_0-keras2_0_0-torch0_4_0-pyspark2_1_2 \
@@ -33,7 +36,22 @@ build_test() {
   echo "  plugins:"
   echo "  - docker-compose#6b0df8a98ff97f42f4944dbb745b5b8cbf04b78c:"
   echo "      build: ${test}"
-  echo "      image-repository: 091976041309.dkr.ecr.us-east-1.amazonaws.com/buildkite"
+  echo "      image-repository: ${repository}"
+  echo "      cache-from: ${test}:${repository}:${BUILDKITE_PIPELINE_SLUG}-${test}-latest"
+  echo "      config: docker-compose.test.yml"
+  echo "      push-retries: 3"
+  echo "  timeout_in_minutes: 15"
+  echo "  agents:"
+  echo "    queue: builders"
+}
+
+cache_test() {
+  local test=$1
+
+  echo "- label: ':docker: Update ${BUILDKITE_PIPELINE_SLUG}-${test}-latest'"
+  echo "  plugins:"
+  echo "  - docker-compose#v2.6.0:"
+  echo "      push: ${test}:${repository}:${BUILDKITE_PIPELINE_SLUG}-${test}-latest"
   echo "      config: docker-compose.test.yml"
   echo "      push-retries: 3"
   echo "  timeout_in_minutes: 15"
@@ -69,6 +87,14 @@ done
 
 # wait for all builds to finish
 echo "- wait"
+
+# cache test containers if built from master
+# TODO: replace with master
+if [[ "${BUILDKITE_BRANCH}" == "buildkite" ]]; then
+  for test in ${tests[@]}; do
+    cache_test "${test}"
+  done
+fi
 
 # run all the tests
 for test in ${tests[@]}; do
