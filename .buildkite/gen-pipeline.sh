@@ -41,6 +41,8 @@ build_test() {
   echo "      config: docker-compose.test.yml"
   echo "      push-retries: 3"
   echo "  timeout_in_minutes: 15"
+  echo "  retry:"
+  echo "    automatic: true"
   echo "  agents:"
   echo "    queue: builders"
 }
@@ -54,7 +56,9 @@ cache_test() {
   echo "      push: ${test}:${repository}:${BUILDKITE_PIPELINE_SLUG}-${test}-latest"
   echo "      config: docker-compose.test.yml"
   echo "      push-retries: 3"
-  echo "  timeout_in_minutes: 15"
+  echo "  timeout_in_minutes: 5"
+  echo "  retry:"
+  echo "    automatic: true"
   echo "  agents:"
   echo "    queue: builders"
 }
@@ -73,6 +77,8 @@ run_test() {
   echo "      config: docker-compose.test.yml"
   echo "      pull-retries: 3"
   echo "  timeout_in_minutes: 5"
+  echo "  retry:"
+  echo "    automatic: true"
   echo "  agents:"
   echo "    queue: ${queue}"
 }
