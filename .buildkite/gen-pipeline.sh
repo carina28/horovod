@@ -8,25 +8,25 @@ repository=091976041309.dkr.ecr.us-east-1.amazonaws.com/buildkite
 
 # list of all the tests
 tests=( \
-       test-cpu-openmpi-py2_7-tf1_1_0-keras2_0_0-torch0_4_0-pyspark2_1_2 \
-       test-cpu-openmpi-py3_5-tf1_1_0-keras2_0_0-torch0_4_0-pyspark2_1_2 \
-       test-cpu-openmpi-py3_6-tf1_1_0-keras2_0_0-torch0_4_0-pyspark2_1_2 \
-       test-cpu-openmpi-py2_7-tf1_6_0-keras2_1_2-torch0_4_1-pyspark2_3_2 \
-       test-cpu-openmpi-py3_5-tf1_6_0-keras2_1_2-torch0_4_1-pyspark2_3_2 \
-       test-cpu-openmpi-py3_6-tf1_6_0-keras2_1_2-torch0_4_1-pyspark2_3_2 \
-       test-cpu-openmpi-py2_7-tf1_12_0-keras2_2_2-torch1_0_0-pyspark2_4_0 \
-       test-cpu-openmpi-py3_5-tf1_12_0-keras2_2_2-torch1_0_0-pyspark2_4_0 \
-       test-cpu-openmpi-py3_6-tf1_12_0-keras2_2_2-torch1_0_0-pyspark2_4_0 \
-       test-cpu-openmpi-py2_7-tfhead-kerashead-torchhead-pyspark2_4_0 \
-       test-cpu-openmpi-py3_6-tfhead-kerashead-torchhead-pyspark2_4_0 \
-       test-cpu-mpich-py2_7-tf1_12_0-keras2_2_2-torch1_0_0-pyspark2_4_0 \
-       test-gpu-openmpi-py2_7-tf1_6_0-keras2_1_2-torch0_4_1-pyspark2_3_2 \
-       test-gpu-openmpi-py3_5-tf1_6_0-keras2_1_2-torch0_4_1-pyspark2_3_2 \
-       test-gpu-openmpi-py2_7-tf1_12_0-keras2_2_2-torch1_0_0-pyspark2_4_0 \
-       test-gpu-openmpi-py3_5-tf1_12_0-keras2_2_2-torch1_0_0-pyspark2_4_0 \
-       test-gpu-openmpi-py2_7-tfhead-kerashead-torchhead-pyspark2_4_0 \
-       test-gpu-openmpi-py3_6-tfhead-kerashead-torchhead-pyspark2_4_0 \
-       test-gpu-mpich-py2_7-tf1_12_0-keras2_2_2-torch1_0_0-pyspark2_4_0 \
+       test-cpu-openmpi-py2_7-tf1_1_0-keras2_0_0-torch0_4_0-mxnet1_5_0-pyspark2_1_2 \
+       test-cpu-openmpi-py3_5-tf1_1_0-keras2_0_0-torch0_4_0-mxnet1_5_0-pyspark2_1_2 \
+       test-cpu-openmpi-py3_6-tf1_1_0-keras2_0_0-torch0_4_0-mxnet1_5_0-pyspark2_1_2 \
+       test-cpu-openmpi-py2_7-tf1_6_0-keras2_1_2-torch0_4_1-mxnet1_5_0-pyspark2_3_2 \
+       test-cpu-openmpi-py3_5-tf1_6_0-keras2_1_2-torch0_4_1-mxnet1_5_0-pyspark2_3_2 \
+       test-cpu-openmpi-py3_6-tf1_6_0-keras2_1_2-torch0_4_1-mxnet1_5_0-pyspark2_3_2 \
+       test-cpu-openmpi-py2_7-tf1_12_0-keras2_2_2-torch1_0_0-mxnet1_5_0-pyspark2_4_0 \
+       test-cpu-openmpi-py3_5-tf1_12_0-keras2_2_2-torch1_0_0-mxnet1_5_0-pyspark2_4_0 \
+       test-cpu-openmpi-py3_6-tf1_12_0-keras2_2_2-torch1_0_0-mxnet1_5_0-pyspark2_4_0 \
+       test-cpu-openmpi-py2_7-tfhead-kerashead-torchhead-mxnet1_5_0-pyspark2_4_0 \
+       test-cpu-openmpi-py3_6-tfhead-kerashead-torchhead-mxnet1_5_0-pyspark2_4_0 \
+       test-cpu-mpich-py2_7-tf1_12_0-keras2_2_2-torch1_0_0-mxnet1_5_0-pyspark2_4_0 \
+       test-gpu-openmpi-py2_7-tf1_6_0-keras2_1_2-torch0_4_1-mxnet1_5_0-pyspark2_3_2 \
+       test-gpu-openmpi-py3_5-tf1_6_0-keras2_1_2-torch0_4_1-mxnet1_5_0-pyspark2_3_2 \
+       test-gpu-openmpi-py2_7-tf1_12_0-keras2_2_2-torch1_0_0-mxnet1_5_0-pyspark2_4_0 \
+       test-gpu-openmpi-py3_5-tf1_12_0-keras2_2_2-torch1_0_0-mxnet1_5_0-pyspark2_4_0 \
+       test-gpu-openmpi-py2_7-tfhead-kerashead-torchhead-mxnet1_5_0-pyspark2_4_0 \
+       test-gpu-openmpi-py3_6-tfhead-kerashead-torchhead-mxnet1_5_0-pyspark2_4_0 \
+       test-gpu-mpich-py2_7-tf1_12_0-keras2_2_2-torch1_0_0-mxnet1_5_0-pyspark2_4_0 \
        )
 
 build_test() {
@@ -131,4 +131,8 @@ for test in ${tests[@]}; do
   run_test "${test}" "${queue}" \
     ":muscle: Test PyTorch MNIST (${test})" \
     "bash -c \"\\\$(cat /mpirun_command) python /horovod/examples/pytorch_mnist.py\""
+
+  run_test "${test}" "${queue}" \
+    ":muscle: Test MXNet MNIST (${test})" \
+    "bash -c \"\\\$(cat /mpirun_command) python /horovod/examples/mxnet_mnist.py\""
 done

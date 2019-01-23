@@ -11,6 +11,7 @@ ARG PYTHON_VERSION=2.7
 ARG TENSORFLOW_PACKAGE=tensorflow-gpu==1.12.0
 ARG KERAS_PACKAGE=keras==2.2.2
 ARG PYTORCH_PACKAGE=torch==1.0.0
+ARG MXNET_PACKAGE=https://s3.amazonaws.com/hyuxi-mxnet/mxnet-python-pkgs-gcc5/mxnet_cu90_gcc5-1.4.0-py2.py3-none-manylinux1_x86_64.whl
 ARG PYSPARK_PACKAGE=pyspark==2.4.0
 
 # Set default shell to /bin/bash
@@ -72,6 +73,9 @@ RUN if [[ ${PYTORCH_PACKAGE} == "torch-nightly" ]]; then \
     else \
         pip install ${PYTORCH_PACKAGE} torchvision; \
     fi
+
+# Install MXNet.
+RUN pip install ${MXNET_PACKAGE}
 
 # Install Horovod.
 COPY . /horovod
