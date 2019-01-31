@@ -134,5 +134,5 @@ for test in ${tests[@]}; do
 
   run_test "${test}" "${queue}" \
     ":muscle: Test MXNet MNIST (${test})" \
-    "bash -c \"\\\$(cat /mpirun_command) python /horovod/examples/mxnet_mnist.py\""
+    "bash -c \"OMP_NUM_THREADS=1 \\\$(cat /mpirun_command) python /horovod/examples/mxnet_mnist.py\""
 done
