@@ -59,7 +59,7 @@ RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
 RUN pip install ${TENSORFLOW_PACKAGE}
 
 # Install Keras.
-RUN pip install ${KERAS_PACKAGE} h5py scipy
+RUN pip install ${KERAS_PACKAGE} h5py scipy pandas
 RUN mkdir -p ~/.keras
 RUN ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs && \
     python -c "from keras.datasets import mnist; mnist.load_data()" && \
@@ -73,6 +73,7 @@ RUN if [[ ${PYTORCH_PACKAGE} == "torch-nightly" ]]; then \
     else \
         pip install ${PYTORCH_PACKAGE} torchvision; \
     fi
+RUN pip install future typing
 
 # Install MXNet.
 RUN pip install ${MXNET_PACKAGE}
