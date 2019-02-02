@@ -13,6 +13,7 @@ ARG KERAS_PACKAGE=keras==2.2.2
 ARG PYTORCH_PACKAGE=torch==1.0.0
 ARG MXNET_PACKAGE=https://s3.amazonaws.com/hyuxi-mxnet/mxnet-python-pkgs-gcc5/mxnet_cu90_gcc5-1.4.0-py2.py3-none-manylinux1_x86_64.whl
 ARG PYSPARK_PACKAGE=pyspark==2.4.0
+ARG HOROVOD_BUILD_FLAGS=HOROVOD_GPU_ALLREDUCE=NCCL
 
 # Set default shell to /bin/bash
 SHELL ["/bin/bash", "-cu"]
@@ -82,7 +83,7 @@ RUN pip install ${MXNET_PACKAGE}
 COPY . /horovod
 RUN cd /horovod && python setup.py sdist
 RUN ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs && \
-    HOROVOD_GPU_ALLREDUCE=NCCL pip install -v /horovod/dist/horovod-*.tar.gz && \
+    bash -c "${HOROVOD_BUILD_FLAGS} pip install -v /horovod/dist/horovod-*.tar.gz" && \
     ldconfig
 
 # Hack for compatibility of MNIST example with TensorFlow 1.1.0.
