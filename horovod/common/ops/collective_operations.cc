@@ -27,7 +27,7 @@ HorovodOp::HorovodOp(CommunicationContext* comm_context,
 AllreduceOp::AllreduceOp(CommunicationContext* comm_context, HorovodGlobalState* global_state)
                          : HorovodOp(comm_context, global_state) {}
 
-Status AllreduceOp::Execute(std::vector<TensorTableEntry>& entries, const HorovodResponse& response) {
+Status AllreduceOp::Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response) {
   auto& first_entry = entries[0];
 
   Initialize(entries, response);
@@ -89,7 +89,7 @@ Status AllreduceOp::Execute(std::vector<TensorTableEntry>& entries, const Horovo
   return Finalize(entries);
 }
 
-void AllreduceOp::Initialize(std::vector<TensorTableEntry>& entries, const HorovodResponse& response) {
+void AllreduceOp::Initialize(std::vector<TensorTableEntry>& entries, const MPIResponse& response) {
 }
 
 Status AllreduceOp::Finalize(std::vector<TensorTableEntry>& entries) {
@@ -123,7 +123,7 @@ void AllreduceOp::RecordEventEnd(std::string event_name, std::vector<TensorTable
 AllgatherOp::AllgatherOp(CommunicationContext* comm_context, HorovodGlobalState* global_state)
                          : HorovodOp(comm_context, global_state) {}
 
-Status AllgatherOp::Execute(std::vector<TensorTableEntry>& entries, const HorovodResponse& response) {
+Status AllgatherOp::Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response) {
   auto& timeline = global_state_->timeline;
   
   // Sizes of subcomponents of each entry from all ranks
@@ -287,7 +287,7 @@ void AllgatherOp::DoAllgather(std::vector<TensorTableEntry>& entries, int* recvc
 BroadcastOp::BroadcastOp(CommunicationContext *comm_context, HorovodGlobalState *global_state)
                          : HorovodOp(comm_context, global_state) {}
 
-Status BroadcastOp::Execute(std::vector<TensorTableEntry> &entries, const HorovodResponse& response) {
+Status BroadcastOp::Execute(std::vector<TensorTableEntry> &entries, const MPIResponse& response) {
   assert(entries.size() == 1);
   auto e = entries[0];
 
@@ -306,14 +306,14 @@ Status BroadcastOp::Execute(std::vector<TensorTableEntry> &entries, const Horovo
 
 bool BroadcastOp::Enabled(ParameterManager& param_manager,
                           std::vector<TensorTableEntry>& entries,
-                          const HorovodResponse& response) const {
+                          const MPIResponse& response) const {
   return true;
 }
 
 ErrorOp::ErrorOp(CommunicationContext *comm_context, HorovodGlobalState *global_state)
     : HorovodOp(comm_context, global_state) {}
 
-Status ErrorOp::Execute(std::vector<TensorTableEntry> &entries, const HorovodResponse& response) {
+Status ErrorOp::Execute(std::vector<TensorTableEntry> &entries, const MPIResponse& response) {
   assert(entries.size() == 1);
   auto e = entries[0];
   return Status::PreconditionError(response.error_message());

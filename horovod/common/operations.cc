@@ -31,7 +31,7 @@
 #include "fusion_buffer_manager.h"
 #include "parameter_manager.h"
 #include "mpi.h"
-#include "message/mpi_message.h"
+#include "message.h"
 #include "operations.h"
 #include "ops/mpi_operations.h"
 #include "ops/operation_manager.h"

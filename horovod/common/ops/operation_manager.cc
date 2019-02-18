@@ -30,7 +30,7 @@ OperationManager::OperationManager(ParameterManager* param_manager,
                                      error_op_(std::move(error_op)) {}
 
 Status OperationManager::ExecuteAllreduce(std::vector<TensorTableEntry>& entries,
-                                          const HorovodResponse& response) const {
+                                          const MPIResponse& response) const {
   for (auto& op : allreduce_ops_) {
     if (op->Enabled(*param_manager_, entries, response)) {
       return op->Execute(entries, response);
@@ -40,7 +40,7 @@ Status OperationManager::ExecuteAllreduce(std::vector<TensorTableEntry>& entries
 }
 
 Status OperationManager::ExecuteAllgather(std::vector<TensorTableEntry>& entries,
-                                          const HorovodResponse& response) const {
+                                          const MPIResponse& response) const {
   for (auto& op : allgather_ops_) {
     if (op->Enabled(*param_manager_, entries, response)) {
       return op->Execute(entries, response);
@@ -50,7 +50,7 @@ Status OperationManager::ExecuteAllgather(std::vector<TensorTableEntry>& entries
 }
 
 Status OperationManager::ExecuteBroadcast(std::vector<TensorTableEntry>& entries,
-                                          const HorovodResponse& response) const {
+                                          const MPIResponse& response) const {
   for (auto& op : broadcast_ops_) {
     if (op->Enabled(*param_manager_, entries, response)) {
       return op->Execute(entries, response);
@@ -60,19 +60,19 @@ Status OperationManager::ExecuteBroadcast(std::vector<TensorTableEntry>& entries
 }
 
 Status OperationManager::ExecuteError(std::vector<TensorTableEntry>& entries,
-                                      const HorovodResponse& response) const {
+                                      const MPIResponse& response) const {
   return error_op_->Execute(entries, response);
 }
 
 Status OperationManager::ExecuteOperation(std::vector<TensorTableEntry>& entries,
-                                          const HorovodResponse& response) const {
-  if (response.response_type() == HorovodResponse::ALLREDUCE) {
+                                          const MPIResponse& response) const {
+  if (response.response_type() == MPIResponse::ALLREDUCE) {
     return ExecuteAllreduce(entries, response);
-  } else if (response.response_type() == HorovodResponse::ALLGATHER) {
+  } else if (response.response_type() == MPIResponse::ALLGATHER) {
     return ExecuteAllgather(entries, response);
-  } else if (response.response_type() == HorovodResponse::BROADCAST) {
+  } else if (response.response_type() == MPIResponse::BROADCAST) {
     return ExecuteBroadcast(entries, response);
-  } else if (response.response_type() == HorovodResponse::ERROR) {
+  } else if (response.response_type() == MPIResponse::ERROR) {
     return ExecuteError(entries, response);
   } else {
     throw std::logic_error("No operation found for response type provided");

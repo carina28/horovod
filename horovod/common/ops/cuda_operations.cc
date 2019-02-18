@@ -100,11 +100,11 @@ CUDAAllreduce::CUDAAllreduce(CUDAContext* context,
 
 bool CUDAAllreduce::Enabled(ParameterManager& param_manager,
                             std::vector<TensorTableEntry>& entries,
-                            const HorovodResponse& response) const {
+                            const MPIResponse& response) const {
   return entries[0].device != CPU_DEVICE_ID;
 }
 
-void CUDAAllreduce::Initialize(std::vector<TensorTableEntry>& entries, const HorovodResponse& response) {
+void CUDAAllreduce::Initialize(std::vector<TensorTableEntry>& entries, const MPIResponse& response) {
   InitCUDA(entries);
   InitComm(entries, response.devices());
 }
@@ -114,7 +114,7 @@ CUDAAllreduceAsync::CUDAAllreduceAsync(CUDAContext* context,
                                        HorovodGlobalState* global_state)
                                        : CUDAAllreduce(context, comm_context, global_state) {}
 
-void CUDAAllreduceAsync::Initialize(std::vector<TensorTableEntry>& entries, const HorovodResponse& response) {
+void CUDAAllreduceAsync::Initialize(std::vector<TensorTableEntry>& entries, const MPIResponse& response) {
   CUDAAllreduce::Initialize(entries, response);
 
   event_queue_ = std::queue<std::pair<std::string, cudaEvent_t>>();

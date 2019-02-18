@@ -116,7 +116,7 @@ HierarchicalAllreduce::HierarchicalAllreduce(NCCLContext* nccl_context, CUDACont
 
 bool HierarchicalAllreduce::Enabled(ParameterManager& param_manager,
                                     std::vector<TensorTableEntry>& entries,
-                                    const HorovodResponse& response) const {
+                                    const MPIResponse& response) const {
   if (!NCCLAllreduce::Enabled(param_manager, entries, response)) {
     return false;
   }

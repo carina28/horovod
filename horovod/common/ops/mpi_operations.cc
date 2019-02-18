@@ -151,7 +151,7 @@ MPIAllreduce::MPIAllreduce(MPIContext* mpi_context,
 
 bool MPIAllreduce::Enabled(ParameterManager& param_manager,
                            std::vector<TensorTableEntry>& entries,
-                           const HorovodResponse& response) const {
+                           const MPIResponse& response) const {
   return true;
 }
 
@@ -187,7 +187,7 @@ MPIAllgather::MPIAllgather(MPIContext* mpi_context,
 
 bool MPIAllgather::Enabled(ParameterManager& param_manager,
                            std::vector<TensorTableEntry>& entries,
-                           const HorovodResponse& response) const {
+                           const MPIResponse& response) const {
   return true;
 }
 
@@ -209,7 +209,7 @@ MPIHierarchicalAllgather::MPIHierarchicalAllgather(MPIContext* mpi_context,
 
 bool MPIHierarchicalAllgather::Enabled(ParameterManager& param_manager,
                                        std::vector<TensorTableEntry>& entries,
-                                       const HorovodResponse& response) const {
+                                       const MPIResponse& response) const {
   return param_manager.HierarchicalAllgather();
 }
 
@@ -235,7 +235,7 @@ MPIBroadcast::MPIBroadcast(MPIContext* mpi_context,
 
 bool MPIBroadcast::Enabled(ParameterManager& param_manager,
                            std::vector<TensorTableEntry>& entries,
-                           const HorovodResponse& response) const {
+                           const MPIResponse& response) const {
   return true;
 }
 

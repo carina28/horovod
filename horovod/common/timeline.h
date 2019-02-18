@@ -25,7 +25,7 @@
 #include <vector>
 
 #include "common.h"
-#include "message/mpi_message.h"
+#include "message.h"
 
 namespace horovod {
 namespace common {

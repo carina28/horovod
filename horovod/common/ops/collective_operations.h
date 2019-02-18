@@ -30,7 +30,7 @@ namespace common {
 class HorovodOp {
 public:
   HorovodOp(CommunicationContext* comm_context, HorovodGlobalState* global_state);
-  virtual Status Execute(std::vector<TensorTableEntry>& entries, const HorovodResponse& response) = 0;
+  virtual Status Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response) = 0;
 
 protected:
   CommunicationContext* comm_context_;
@@ -42,18 +42,18 @@ public:
   AllreduceOp(CommunicationContext* comm_context, HorovodGlobalState* global_state);
   virtual ~AllreduceOp()=default;
 
-  virtual Status Execute(std::vector<TensorTableEntry>& entries, const HorovodResponse& response);
+  virtual Status Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response);
 
   virtual bool Enabled(ParameterManager& param_manager,
                        std::vector<TensorTableEntry>& entries,
-                       const HorovodResponse& response) const = 0;
+                       const MPIResponse& response) const = 0;
 
 protected:
   virtual void DoAllreduce(std::vector<TensorTableEntry>& entries,
                            const void* fused_input_data, void* buffer_data,
                            int64_t& num_elements, size_t& buffer_len) = 0;
 
-  virtual void Initialize(std::vector<TensorTableEntry>& entries, const HorovodResponse& response);
+  virtual void Initialize(std::vector<TensorTableEntry>& entries, const MPIResponse& response);
 
   virtual Status Finalize(std::vector<TensorTableEntry>& entries);
 
@@ -75,11 +75,11 @@ public:
   AllgatherOp(CommunicationContext* comm_context, HorovodGlobalState* global_state);
   virtual ~AllgatherOp()=default;
 
-  virtual Status Execute(std::vector<TensorTableEntry>& entries, const HorovodResponse& response);
+  virtual Status Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response);
 
   virtual bool Enabled(ParameterManager& param_manager,
                        std::vector<TensorTableEntry>& entries,
-                       const HorovodResponse& response) const = 0;
+                       const MPIResponse& response) const = 0;
 
 protected:
   virtual void DoAllgather(std::vector<TensorTableEntry>& entries, int* recvcounts, int* displcmnts,
@@ -97,11 +97,11 @@ public:
   BroadcastOp(CommunicationContext* comm_context, HorovodGlobalState* global_state);
   virtual ~BroadcastOp()=default;
 
-  virtual Status Execute(std::vector<TensorTableEntry>& entries, const HorovodResponse& response);
+  virtual Status Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response);
 
   virtual bool Enabled(ParameterManager& param_manager,
                        std::vector<TensorTableEntry>& entries,
-                       const HorovodResponse& response) const;
+                       const MPIResponse& response) const;
 
 protected:
   virtual void DoBroadcast(std::vector<TensorTableEntry>& entries,
@@ -114,7 +114,7 @@ public:
   ErrorOp(CommunicationContext* comm_context, HorovodGlobalState* global_state);
   virtual ~ErrorOp()=default;
 
-  virtual Status Execute(std::vector<TensorTableEntry>& entries, const HorovodResponse& response);
+  virtual Status Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response);
 };
 
 class HierarchicalAllgather : public AllgatherOp {

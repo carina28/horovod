@@ -68,10 +68,10 @@ public:
 
   bool Enabled(ParameterManager& param_manager,
                std::vector<TensorTableEntry>& entries,
-               const HorovodResponse& response) const override;
+               const MPIResponse& response) const override;
 
 protected:
-  void Initialize(std::vector<TensorTableEntry>& entries, const HorovodResponse& response) override;
+  void Initialize(std::vector<TensorTableEntry>& entries, const MPIResponse& response) override;
   void MemcpyInFusionBuffer(void* buffer_data_at_offset, TensorTableEntry& e,
                             std::vector<TensorTableEntry>& entries) override;
   void MemcpyOutFusionBuffer(void* buffer_data_at_offset, TensorTableEntry& e,
@@ -94,7 +94,7 @@ public:
                      HorovodGlobalState* global_state);
 
 protected:
-  void Initialize(std::vector<TensorTableEntry>& entries, const HorovodResponse& response) override;
+  void Initialize(std::vector<TensorTableEntry>& entries, const MPIResponse& response) override;
   Status Finalize(std::vector<TensorTableEntry>& entries) override;
   void StreamSynchronize(std::vector<TensorTableEntry>& entries) override;
   void RecordEventStart(std::string event_name, std::vector<TensorTableEntry>& entries) override;

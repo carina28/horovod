@@ -31,15 +31,15 @@ public:
                    std::shared_ptr<ErrorOp> error_op);
   virtual ~OperationManager()=default;
 
-  Status ExecuteAllreduce(std::vector<TensorTableEntry>& entries, const HorovodResponse& response) const;
+  Status ExecuteAllreduce(std::vector<TensorTableEntry>& entries, const MPIResponse& response) const;
 
-  Status ExecuteAllgather(std::vector<TensorTableEntry>& entries, const HorovodResponse& response) const;
+  Status ExecuteAllgather(std::vector<TensorTableEntry>& entries, const MPIResponse& response) const;
 
-  Status ExecuteBroadcast(std::vector<TensorTableEntry>& entries, const HorovodResponse& response) const;
+  Status ExecuteBroadcast(std::vector<TensorTableEntry>& entries, const MPIResponse& response) const;
 
-  Status ExecuteError(std::vector<TensorTableEntry>& entries, const HorovodResponse& response) const;
+  Status ExecuteError(std::vector<TensorTableEntry>& entries, const MPIResponse& response) const;
 
-  Status ExecuteOperation(std::vector<TensorTableEntry>& entries, const HorovodResponse& response) const;
+  Status ExecuteOperation(std::vector<TensorTableEntry>& entries, const MPIResponse& response) const;
 
 private:
   ParameterManager* param_manager_;

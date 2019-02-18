@@ -20,7 +20,7 @@
 #include <memory>
 #include <string>
 
-#include "message/mpi_message.h"
+#include "message.h"
 
 namespace horovod {
 namespace common {

@@ -25,11 +25,36 @@
 namespace horovod {
 namespace common {
 
+enum DataType {
+  HOROVOD_UINT8 = 0,
+  HOROVOD_INT8 = 1,
+  HOROVOD_UINT16 = 2,
+  HOROVOD_INT16 = 3,
+  HOROVOD_INT32 = 4,
+  HOROVOD_INT64 = 5,
+  HOROVOD_FLOAT16 = 6,
+  HOROVOD_FLOAT32 = 7,
+  HOROVOD_FLOAT64 = 8,
+  HOROVOD_BOOL = 9,
+  HOROVOD_BYTE = 10,
+  HOROVOD_NULL = 11,
+};
+
+const std::string& DataType_Name(DataType value);
+
 // An MPIRequest is a message sent from a rank greater than zero to the
 // coordinator (rank zero), informing the coordinator of an operation that
 // the rank wants to do and the tensor that it wants to apply the operation to.
-class MPIRequest : public HorovodRequest {
+class MPIRequest {
 public:
+  enum RequestType {
+    ALLREDUCE = 0,
+    ALLGATHER = 1,
+    BROADCAST = 2
+  };
+
+  static const std::string& RequestType_Name(RequestType value);
+
   // The request rank is necessary to create a consistent ordering of results,
   // for example in the allgather where the order of outputs should be sorted
   // by rank.
@@ -92,9 +117,18 @@ private:
 // now. If the operation requested would result in an error (for example, due
 // to a type or shape mismatch), then the MPIResponse can contain an error and
 // an error message instead.
-class MPIResponse : public HorovodResponse {
+class MPIResponse {
 public:
-  ResponseType response_type() const override;
+  enum ResponseType {
+    ALLREDUCE = 0,
+    ALLGATHER = 1,
+    BROADCAST = 2,
+    ERROR = 3
+  };
+
+  static const std::string& ResponseType_Name(ResponseType value);
+
+  ResponseType response_type() const;
   void set_response_type(ResponseType value);
 
   // Empty if the type is DONE or SHUTDOWN.
@@ -104,17 +138,17 @@ public:
   void add_tensor_name(const std::string& value);
 
   // Empty unless response_type is ERROR.
-  const std::string& error_message() const override;
+  const std::string& error_message() const;
   void set_error_message(const std::string& value);
 
-  const std::vector<int32_t>& devices() const override;
+  const std::vector<int32_t>& devices() const;
   void set_devices(const std::vector<int32_t>& value);
   void add_device(int32_t value);
 
   // Empty unless response_type is ALLGATHER.
   // These tensor sizes are the dimension zero sizes of all the input matrices,
   // indexed by the rank.
-  const std::vector<int64_t>& tensor_sizes() const override;
+  const std::vector<int64_t>& tensor_sizes() const;
   void set_tensor_sizes(const std::vector<int64_t>& value);
   void add_tensor_size(int64_t value);
 

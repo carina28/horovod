@@ -56,7 +56,7 @@ public:
 
   bool Enabled(ParameterManager& param_manager,
                std::vector<TensorTableEntry>& entries,
-               const HorovodResponse& response) const override;
+               const MPIResponse& response) const override;
 
 protected:
   void DoAllreduce(std::vector<TensorTableEntry>& entries,
