@@ -48,8 +48,16 @@ Status Status::InvalidArgument(std::string message) {
   return Status(StatusType::INVALID_ARGUMENT, message);
 }
 
+Status Status::Finalizing() {
+  return Status(StatusType::FINALIZING, "");
+}
+
 bool Status::ok() const {
   return type_ == StatusType::OK;
+}
+
+bool Status::finalizing() const {
+  return type_ == StatusType ::FINALIZING;
 }
 
 StatusType Status::type() const {

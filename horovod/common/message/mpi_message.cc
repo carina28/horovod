@@ -15,66 +15,13 @@
 // =============================================================================
 
 #include "mpi_message.h"
-#include "wire/mpi_message_generated.h"
+
 #include <iostream>
+
+#include "../wire/mpi_message_generated.h"
 
 namespace horovod {
 namespace common {
-
-const std::string& MPIDataType_Name(MPIDataType value) {
-  switch (value) {
-  case HOROVOD_UINT8:
-    static const std::string uint8("uint8");
-    return uint8;
-  case HOROVOD_INT8:
-    static const std::string int8("int8");
-    return int8;
-  case HOROVOD_UINT16:
-    static const std::string uint16("uint16");
-    return uint16;
-  case HOROVOD_INT16:
-    static const std::string int16("int16");
-    return int16;
-  case HOROVOD_INT32:
-    static const std::string int32("int32");
-    return int32;
-  case HOROVOD_INT64:
-    static const std::string int64("int64");
-    return int64;
-  case HOROVOD_FLOAT16:
-    static const std::string float16("float16");
-    return float16;
-  case HOROVOD_FLOAT32:
-    static const std::string float32("float32");
-    return float32;
-  case HOROVOD_FLOAT64:
-    static const std::string float64("float64");
-    return float64;
-  case HOROVOD_BOOL:
-    static const std::string bool_("bool");
-    return bool_;
-  default:
-    static const std::string unknown("<unknown>");
-    return unknown;
-  }
-}
-
-const std::string& MPIRequest::RequestType_Name(RequestType value) {
-  switch (value) {
-  case RequestType::ALLREDUCE:
-    static const std::string allreduce("ALLREDUCE");
-    return allreduce;
-  case RequestType::ALLGATHER:
-    static const std::string allgather("ALLGATHER");
-    return allgather;
-  case RequestType::BROADCAST:
-    static const std::string broadcast("BROADCAST");
-    return broadcast;
-  default:
-    static const std::string unknown("<unknown>");
-    return unknown;
-  }
-}
 
 int32_t MPIRequest::request_rank() const { return request_rank_; }
 
@@ -86,9 +33,9 @@ MPIRequest::RequestType MPIRequest::request_type() const {
 
 void MPIRequest::set_request_type(RequestType value) { request_type_ = value; }
 
-MPIDataType MPIRequest::tensor_type() const { return tensor_type_; }
+DataType MPIRequest::tensor_type() const { return tensor_type_; }
 
-void MPIRequest::set_tensor_type(MPIDataType value) { tensor_type_ = value; }
+void MPIRequest::set_tensor_type(DataType value) { tensor_type_ = value; }
 
 const std::string& MPIRequest::tensor_name() const { return tensor_name_; }
 
@@ -122,7 +69,7 @@ void MPIRequest_ParseFromWire(MPIRequest& request,
                               const wire::MPIRequest* obj) {
   request.set_request_rank(obj->request_rank());
   request.set_request_type((MPIRequest::RequestType)obj->request_type());
-  request.set_tensor_type((MPIDataType)obj->tensor_type());
+  request.set_tensor_type((DataType)obj->tensor_type());
   request.set_tensor_name(obj->tensor_name()->str());
   request.set_root_rank(obj->root_rank());
   request.set_device(obj->device());
@@ -221,26 +168,6 @@ void MPIRequestList::SerializeToString(const MPIRequestList& request_list,
   uint8_t* buf = builder.GetBufferPointer();
   auto size = builder.GetSize();
   output = std::string((char*)buf, size);
-}
-
-const std::string& MPIResponse::ResponseType_Name(ResponseType value) {
-  switch (value) {
-  case ResponseType::ALLREDUCE:
-    static const std::string allreduce("ALLREDUCE");
-    return allreduce;
-  case ResponseType::ALLGATHER:
-    static const std::string allgather("ALLGATHER");
-    return allgather;
-  case ResponseType::BROADCAST:
-    static const std::string broadcast("BROADCAST");
-    return broadcast;
-  case ResponseType::ERROR:
-    static const std::string error("ERROR");
-    return error;
-  default:
-    static const std::string unknown("<unknown>");
-    return unknown;
-  }
 }
 
 MPIResponse::ResponseType MPIResponse::response_type() const {
