@@ -529,7 +529,7 @@ void PerformOperation(TensorTable& tensor_table, MPIResponse response) {
     status = Status::UnknownError(ex.what());
   }
 
-  if (!status.finalizing()) {
+  if (!status.in_progress()) {
     for (auto& e : entries) {
       timeline.End(e.tensor_name, status.ok() ? e.output : nullptr);
       e.callback(status);

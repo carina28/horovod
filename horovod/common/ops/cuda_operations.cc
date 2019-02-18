@@ -156,7 +156,7 @@ Status CUDAAllreduceAsync::Finalize(std::vector<TensorTableEntry>& entries) {
 
   finalizer_thread.detach();
 
-  return Status::Finalizing();
+  return Status::InProgress();
 }
 
 void CUDAAllreduceAsync::StreamSynchronize(std::vector<TensorTableEntry>& entries) {

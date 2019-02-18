@@ -55,7 +55,7 @@ namespace common {
 // List of supported frameworks.
 enum Framework { TENSORFLOW, PYTORCH, MXNET };
 
-enum StatusType { OK, UNKNOWN_ERROR, PRECONDITION_ERROR, ABORTED, INVALID_ARGUMENT, FINALIZING };
+enum StatusType { OK, UNKNOWN_ERROR, PRECONDITION_ERROR, ABORTED, INVALID_ARGUMENT, IN_PROGRESS };
 
 enum DeviceType { CPU, GPU };
 
@@ -67,9 +67,9 @@ public:
   static Status PreconditionError(std::string message);
   static Status Aborted(std::string message);
   static Status InvalidArgument(std::string message);
-  static Status Finalizing();
+  static Status InProgress();
   bool ok() const;
-  bool finalizing() const;
+  bool in_progress() const;
   StatusType type() const;
   const std::string& reason() const;
 
