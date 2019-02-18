@@ -31,9 +31,8 @@ DDL_Type GetDDLDataType(const std::shared_ptr<Tensor> tensor) {
 
 DDLAllreduce::DDLAllreduce(DDLContext* ddl_context,
                            CUDAContext* cuda_context,
-                           CommunicationContext* comm_context,
                            HorovodGlobalState* global_state)
-                           : CUDAAllreduceAsync(cuda_context, comm_context, global_state),
+                           : CUDAAllreduceAsync(cuda_context, global_state),
                              ddl_context_(ddl_context) {}
 
 void DDLAllreduce::InitComm(std::vector<TensorTableEntry>& entries, const std::vector<int32_t>& devices) {

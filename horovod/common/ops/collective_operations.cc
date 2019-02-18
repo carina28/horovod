@@ -19,13 +19,10 @@
 namespace horovod {
 namespace common {
 
-HorovodOp::HorovodOp(CommunicationContext* comm_context,
-                     HorovodGlobalState* global_state)
-                     : comm_context_(comm_context), global_state_(global_state) {}
+HorovodOp::HorovodOp(HorovodGlobalState* global_state) : global_state_(global_state) {}
 
 // Allreduce
-AllreduceOp::AllreduceOp(CommunicationContext* comm_context, HorovodGlobalState* global_state)
-                         : HorovodOp(comm_context, global_state) {}
+AllreduceOp::AllreduceOp(HorovodGlobalState* global_state) : HorovodOp(global_state) {}
 
 Status AllreduceOp::Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response) {
   auto& first_entry = entries[0];
@@ -120,8 +117,7 @@ void AllreduceOp::RecordEventEnd(std::string event_name, std::vector<TensorTable
 }
 
 // Allgather
-AllgatherOp::AllgatherOp(CommunicationContext* comm_context, HorovodGlobalState* global_state)
-                         : HorovodOp(comm_context, global_state) {}
+AllgatherOp::AllgatherOp(HorovodGlobalState* global_state) : HorovodOp(global_state) {}
 
 Status AllgatherOp::Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response) {
   auto& timeline = global_state_->timeline;
@@ -201,8 +197,7 @@ Status AllgatherOp::Execute(std::vector<TensorTableEntry>& entries, const MPIRes
     rank_displacement += recvcounts[rc];
   }
 
-  int element_size;
-  comm_context_->GetTypeSize(first_entry.tensor->dtype(), &element_size);
+  int element_size = GetElementSize(first_entry.tensor->dtype());
   int64_t total_size = displcmnts[global_state_->size - 1] +
                        recvcounts[global_state_->size - 1];
 
@@ -284,8 +279,7 @@ void AllgatherOp::DoAllgather(std::vector<TensorTableEntry>& entries, int* recvc
   delete[] entry_component_offsets;
 }
 
-BroadcastOp::BroadcastOp(CommunicationContext *comm_context, HorovodGlobalState *global_state)
-                         : HorovodOp(comm_context, global_state) {}
+BroadcastOp::BroadcastOp(HorovodGlobalState *global_state) : HorovodOp(global_state) {}
 
 Status BroadcastOp::Execute(std::vector<TensorTableEntry> &entries, const MPIResponse& response) {
   assert(entries.size() == 1);
@@ -310,8 +304,7 @@ bool BroadcastOp::Enabled(ParameterManager& param_manager,
   return true;
 }
 
-ErrorOp::ErrorOp(CommunicationContext *comm_context, HorovodGlobalState *global_state)
-    : HorovodOp(comm_context, global_state) {}
+ErrorOp::ErrorOp(HorovodGlobalState *global_state) : HorovodOp(global_state) {}
 
 Status ErrorOp::Execute(std::vector<TensorTableEntry> &entries, const MPIResponse& response) {
   assert(entries.size() == 1);
@@ -319,9 +312,7 @@ Status ErrorOp::Execute(std::vector<TensorTableEntry> &entries, const MPIRespons
   return Status::PreconditionError(response.error_message());
 }
 
-HierarchicalAllgather::HierarchicalAllgather(CommunicationContext* comm_context,
-                                             HorovodGlobalState* global_state)
-                                             : AllgatherOp(comm_context, global_state) {}
+HierarchicalAllgather::HierarchicalAllgather(HorovodGlobalState* global_state) : AllgatherOp(global_state) {}
 
 void HierarchicalAllgather::DoAllgather(std::vector<TensorTableEntry>& entries, int* recvcounts, int* displcmnts,
                                         int64_t** entry_component_offsets, int64_t** entry_component_sizes,
@@ -330,23 +321,12 @@ void HierarchicalAllgather::DoAllgather(std::vector<TensorTableEntry>& entries, 
 
   // If shared buffer is not initialized or is not large enough, reallocate
   int64_t total_size_in_bytes = total_size * element_size;
-  if (global_state_->shared_buffer == nullptr ||
-      global_state_->shared_buffer_size < total_size_in_bytes) {
-    if (global_state_->shared_buffer != nullptr) {
-      comm_context_->FreeSharedBuffer();
-      global_state_->shared_buffer = nullptr;
-    }
-    int64_t window_size =
-        global_state_->local_rank == 0 ? total_size_in_bytes : 0;
+  if (global_state_->shared_buffer == nullptr || global_state_->shared_buffer_size < total_size_in_bytes) {
+    FreeSharedBuffer();
 
     // Allocate shared memory, give each rank their respective pointer
     timeline.ActivityStartAll(entries, ALLOCATE_SHARED_BUFFER);
-    comm_context_->AllocateSharedBuffer(window_size, element_size, &global_state_->shared_buffer,
-                                        CommunicationContext::Communicator::LOCAL);
-    if (global_state_->local_rank != 0) {
-      comm_context_->QuerySharedBuffer(0, &global_state_->shared_buffer);
-    }
-    global_state_->shared_buffer_size = total_size_in_bytes;
+    AllocateSharedBuffer(total_size_in_bytes, element_size);
     timeline.ActivityEndAll(entries);
   }
 
@@ -387,7 +367,7 @@ void HierarchicalAllgather::DoAllgather(std::vector<TensorTableEntry>& entries, 
            (size_t)(entry_component_sizes[ec][global_state_->rank] *
                     element_size));
   }
-  comm_context_->Barrier(CommunicationContext::Communicator::GLOBAL);
+  Barrier();
   timeline.ActivityEndAll(entries);
 
   auto& first_entry = entries[0];
@@ -409,7 +389,7 @@ void HierarchicalAllgather::DoAllgather(std::vector<TensorTableEntry>& entries, 
       copy_offset += entry_component_size * element_size;
     }
   }
-  comm_context_->Barrier(CommunicationContext::Communicator::GLOBAL);
+  Barrier();
   timeline.ActivityEndAll(entries);
 
   // Free the buffers

@@ -94,9 +94,8 @@ void CUDAContext::WaitForEvents(std::queue<std::pair<std::string, cudaEvent_t>>&
 }
 
 CUDAAllreduce::CUDAAllreduce(CUDAContext* context,
-                             CommunicationContext* comm_context,
                              HorovodGlobalState* global_state)
-                             : AllreduceOp(comm_context, global_state), cuda_context_(context) {}
+                             : AllreduceOp(global_state), cuda_context_(context) {}
 
 bool CUDAAllreduce::Enabled(ParameterManager& param_manager,
                             std::vector<TensorTableEntry>& entries,
@@ -110,9 +109,8 @@ void CUDAAllreduce::Initialize(std::vector<TensorTableEntry>& entries, const MPI
 }
 
 CUDAAllreduceAsync::CUDAAllreduceAsync(CUDAContext* context,
-                                       CommunicationContext* comm_context,
                                        HorovodGlobalState* global_state)
-                                       : CUDAAllreduce(context, comm_context, global_state) {}
+                                       : CUDAAllreduce(context, global_state) {}
 
 void CUDAAllreduceAsync::Initialize(std::vector<TensorTableEntry>& entries, const MPIResponse& response) {
   CUDAAllreduce::Initialize(entries, response);

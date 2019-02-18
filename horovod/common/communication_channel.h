@@ -17,12 +17,12 @@
 #ifndef HOROVOD_COMMUNICATION_CONTEXT_H
 #define HOROVOD_COMMUNICATION_CONTEXT_H
 
-#include "../message.h"
+#include "message.h"
 
 namespace horovod {
 namespace common {
 
-class CommunicationContext {
+class Channel {
 public:
   enum Communicator {
     GLOBAL = 0,

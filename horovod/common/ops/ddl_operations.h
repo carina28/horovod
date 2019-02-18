@@ -34,7 +34,6 @@ class DDLAllreduce : public CUDAAllreduceAsync {
 public:
   DDLAllreduce(DDLContext* ddl_context,
                CUDAContext* cuda_context,
-               CommunicationContext* comm_context,
                HorovodGlobalState* global_state);
 
 protected:

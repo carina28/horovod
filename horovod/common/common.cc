@@ -57,7 +57,7 @@ bool Status::ok() const {
 }
 
 bool Status::in_progress() const {
-  return type_ == StatusType ::IN_PROGRESS;
+  return type_ == StatusType::IN_PROGRESS;
 }
 
 StatusType Status::type() const {

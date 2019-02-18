@@ -63,7 +63,6 @@ struct CUDAContext {
 class CUDAAllreduce : public AllreduceOp {
 public:
   CUDAAllreduce(CUDAContext* context,
-                CommunicationContext* comm_context,
                 HorovodGlobalState* global_state);
 
   bool Enabled(ParameterManager& param_manager,
@@ -90,7 +89,6 @@ protected:
 class CUDAAllreduceAsync : public CUDAAllreduce {
 public:
   CUDAAllreduceAsync(CUDAContext* context,
-                     CommunicationContext* comm_context,
                      HorovodGlobalState* global_state);
 
 protected:

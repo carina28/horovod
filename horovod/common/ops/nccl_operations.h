@@ -32,8 +32,8 @@ struct NCCLContext {
 
 class NCCLAllreduce : public CUDAAllreduceAsync {
 public:
-  NCCLAllreduce(NCCLContext* nccl_context, CUDAContext* cuda_context,
-                CommunicationContext* comm_context, HorovodGlobalState* global_state);
+  NCCLAllreduce(NCCLContext* nccl_context, Channel* cpu_channel,
+                CUDAContext* cuda_context, HorovodGlobalState* global_state);
 
 protected:
   void InitComm(std::vector<TensorTableEntry>& entries, const std::vector<int32_t>& devices) override;
@@ -43,16 +43,18 @@ protected:
 
   virtual const std::vector<int32_t> GetDeviceMap(const std::vector<int32_t>& devices);
   virtual void SetCommStrategy(int& nccl_rank, int& nccl_size,
-                               CommunicationContext::Communicator& nccl_id_bcast_comm);
+                               Channel::Communicator& nccl_id_bcast_comm);
 
   NCCLContext* nccl_context_;
   ncclComm_t* nccl_comm_;
+
+  Channel* cpu_channel_;
 };
 
-class HierarchicalAllreduce : public NCCLAllreduce {
+class NCCLHierarchicalAllreduce : public NCCLAllreduce {
 public:
-  HierarchicalAllreduce(NCCLContext* nccl_context, CUDAContext* cuda_context,
-                        CommunicationContext* comm_context, HorovodGlobalState* global_state);
+  NCCLHierarchicalAllreduce(NCCLContext* nccl_context, Channel* cpu_channel,
+                            CUDAContext* cuda_context, HorovodGlobalState* global_state);
 
   bool Enabled(ParameterManager& param_manager,
                std::vector<TensorTableEntry>& entries,
@@ -66,7 +68,7 @@ protected:
 private:
   const std::vector<int32_t> GetDeviceMap(const std::vector<int32_t>& devices) override;
   void SetCommStrategy(int& nccl_rank, int& nccl_size,
-                       CommunicationContext::Communicator& nccl_id_bcast_comm) override;
+                       Channel::Communicator& nccl_id_bcast_comm) override;
 };
 
 } // namespace common
