@@ -16,9 +16,10 @@
 #ifndef HOROVOD_COMMON_H
 #define HOROVOD_COMMON_H
 
-#include <unordered_map>
+#include <functional>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "message.h"
 
