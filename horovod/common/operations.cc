@@ -29,12 +29,12 @@
 #include "hashes.h"
 #include "global_state.h"
 #include "fusion_buffer_manager.h"
-#include "parameter_manager.h"
 #include "mpi.h"
 #include "message.h"
 #include "operations.h"
 #include "ops/mpi_operations.h"
 #include "ops/operation_manager.h"
+#include "parameter_manager.h"
 #include "timeline.h"
 #include "logging.h"
 
@@ -130,7 +130,7 @@ OperationManager* CreateOperationManager(HorovodGlobalState& state) {
 
 #if HAVE_CUDA
 #if HOROVOD_GPU_ALLREDUCE == 'M'
-  allreduce_ops.push_back(std::shared_ptr<AllreduceOp>(new MPI_CUDAAllreduce(&cuda_context, &state)));
+  allreduce_ops.push_back(std::shared_ptr<AllreduceOp>(new MPI_CUDAAllreduce(&mpi_channel, &cuda_context, &state)));
 
 #else
   #if HAVE_NCCL && HOROVOD_GPU_ALLREDUCE == 'N'
@@ -651,7 +651,7 @@ void BackgroundThreadLoop(HorovodGlobalState& state, MPIChannel& ctx) {
                    &work_group);
     MPI_Comm_create_group(MPI_COMM_WORLD, work_group, 0, &(ctx.mpi_comm));
     if (ctx.mpi_comm == MPI_COMM_NULL) {
-      LOG(WARNING) << "WARNING: Unable to create Horovod communicator, using "
+      LOG(WARNING) << "Unable to create Horovod communicator, using "
                       "MPI_COMM_WORLD instead.";
       ctx.mpi_comm = MPI_COMM_WORLD;
     }

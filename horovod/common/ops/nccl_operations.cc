@@ -43,34 +43,33 @@ void NCCLContext::ErrorCheck(std::string op_name, ncclResult_t nccl_result) {
   }
 }
 
+NCCLAllreduce::NCCLAllreduce(NCCLContext *nccl_context,
+                             Channel *cpu_channel,
+                             CUDAContext *cuda_context,
+                             HorovodGlobalState *global_state)
+    : CUDAAllreduceAsync(cuda_context, global_state),
+      nccl_context_(nccl_context), cpu_channel_(cpu_channel) {}
 
-NCCLAllreduce::NCCLAllreduce(NCCLContext* nccl_context,
-                             Channel* cpu_channel,
-                             CUDAContext* cuda_context,
-                             HorovodGlobalState* global_state)
-                             : CUDAAllreduceAsync(cuda_context, global_state),
-                               nccl_context_(nccl_context), cpu_channel_(cpu_channel) {}
-
-void NCCLAllreduce::InitComm(std::vector<TensorTableEntry>& entries, const std::vector<int32_t>& devices) {
+void NCCLAllreduce::InitComm(std::vector<TensorTableEntry> &entries, const std::vector<int32_t> &devices) {
   // Determine GPU IDs of the devices participating in this communicator.
   std::vector<int32_t> nccl_device_map = GetDeviceMap(devices);
 
   // Ensure NCCL communicator is in the map before executing reduction.
-  ncclComm_t& nccl_comm = nccl_context_->nccl_comms[nccl_device_map];
+  ncclComm_t &nccl_comm = nccl_context_->nccl_comms[nccl_device_map];
   if (nccl_comm == nullptr) {
-    auto& timeline = global_state_->timeline;
+    auto &timeline = global_state_->timeline;
     timeline.ActivityStartAll(entries, INIT_NCCL);
 
     int nccl_rank, nccl_size;
     Channel::Communicator nccl_id_bcast_comm;
-    SetCommStrategy(nccl_rank, nccl_size, nccl_id_bcast_comm);
+    PopulateCommStrategy(nccl_rank, nccl_size, nccl_id_bcast_comm);
 
     ncclUniqueId nccl_id;
     if (nccl_rank == 0) {
       nccl_context_->ErrorCheck("ncclGetUniqueId", ncclGetUniqueId(&nccl_id));
     }
 
-    cpu_channel_->Broadcast((void*)&nccl_id, sizeof(nccl_id), HOROVOD_BYTE, 0, nccl_id_bcast_comm);
+    cpu_channel_->Broadcast((void *) &nccl_id, sizeof(nccl_id), HOROVOD_BYTE, 0, nccl_id_bcast_comm);
 
     ncclComm_t new_nccl_comm;
     auto nccl_result = ncclCommInitRank(&new_nccl_comm, nccl_size, nccl_id, nccl_rank);
@@ -87,47 +86,47 @@ void NCCLAllreduce::InitComm(std::vector<TensorTableEntry>& entries, const std::
   nccl_comm_ = &nccl_comm;
 }
 
-void NCCLAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entries,
-                                const void* fused_input_data, void* buffer_data,
-                                int64_t& num_elements, size_t& buffer_len) {
-  auto& first_entry = entries[0];
+void NCCLAllreduce::DoAllreduce(std::vector<TensorTableEntry> &entries,
+                                const void *fused_input_data, void *buffer_data,
+                                int64_t &num_elements, size_t &buffer_len) {
+  auto &first_entry = entries[0];
   auto nccl_result = ncclAllReduce(fused_input_data, buffer_data,
-                                   (size_t)num_elements,
+                                   (size_t) num_elements,
                                    GetNCCLDataType(first_entry.tensor), ncclSum,
                                    *nccl_comm_, *stream_);
   nccl_context_->ErrorCheck("ncclAllReduce", nccl_result);
   RecordEventEnd(NCCL_ALLREDUCE, entries);
 }
 
-const std::vector<int32_t> NCCLAllreduce::GetDeviceMap(const std::vector<int32_t>& devices) {
+const std::vector<int32_t> NCCLAllreduce::GetDeviceMap(const std::vector<int32_t> &devices) {
   return devices;
 }
 
-void NCCLAllreduce::SetCommStrategy(int& nccl_rank, int& nccl_size,
-                                    Channel::Communicator& nccl_id_bcast_comm) {
+void NCCLAllreduce::PopulateCommStrategy(int &nccl_rank, int &nccl_size,
+                                         Channel::Communicator &nccl_id_bcast_comm) {
   nccl_rank = global_state_->rank;
   nccl_size = global_state_->size;
   nccl_id_bcast_comm = Channel::Communicator::GLOBAL;
 }
 
-NCCLHierarchicalAllreduce::NCCLHierarchicalAllreduce(NCCLContext* nccl_context, Channel* cpu_channel,
-                                                     CUDAContext* cuda_context, HorovodGlobalState* global_state)
-                                                     : NCCLAllreduce(nccl_context, cpu_channel,
-                                                                     cuda_context, global_state) {}
+NCCLHierarchicalAllreduce::NCCLHierarchicalAllreduce(NCCLContext *nccl_context, Channel *cpu_channel,
+                                                     CUDAContext *cuda_context, HorovodGlobalState *global_state)
+    : NCCLAllreduce(nccl_context, cpu_channel,
+                    cuda_context, global_state) {}
 
-bool NCCLHierarchicalAllreduce::Enabled(ParameterManager& param_manager,
-                                    std::vector<TensorTableEntry>& entries,
-                                    const MPIResponse& response) const {
+bool NCCLHierarchicalAllreduce::Enabled(ParameterManager &param_manager,
+                                        std::vector<TensorTableEntry> &entries,
+                                        const MPIResponse &response) const {
   if (!NCCLAllreduce::Enabled(param_manager, entries, response)) {
     return false;
   }
   return param_manager.HierarchicalAllreduce();
 }
 
-void NCCLHierarchicalAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entries,
-                                        const void* fused_input_data, void* buffer_data,
-                                        int64_t& num_elements, size_t& buffer_len) {
-  auto& first_entry = entries[0];
+void NCCLHierarchicalAllreduce::DoAllreduce(std::vector<TensorTableEntry> &entries,
+                                            const void *fused_input_data, void *buffer_data,
+                                            int64_t &num_elements, size_t &buffer_len) {
+  auto &first_entry = entries[0];
   int element_size;
   cpu_channel_->GetTypeSize(first_entry.tensor->dtype(), &element_size);
 
@@ -162,8 +161,8 @@ void NCCLHierarchicalAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entri
 
   size_t buffer_len_per_rank = element_size * num_elements_per_rank;
 
-  void* buffer_data_at_rank_offset =
-      (uint8_t*)buffer_data +
+  void *buffer_data_at_rank_offset =
+      (uint8_t *) buffer_data +
       buffer_len_per_rank * global_state_->local_rank;
 
   int64_t num_elements_remaining =
@@ -173,12 +172,12 @@ void NCCLHierarchicalAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entri
 
   size_t buffer_len_remaining = element_size * num_elements_remaining;
 
-  void* buffer_data_remainder =
-      (uint8_t*)buffer_data +
+  void *buffer_data_remainder =
+      (uint8_t *) buffer_data +
       buffer_len_per_rank * global_state_->local_size;
 
-  void* fused_input_data_remainder =
-      (uint8_t*)fused_input_data +
+  void *fused_input_data_remainder =
+      (uint8_t *) fused_input_data +
       buffer_len_per_rank * global_state_->local_size;
 
   int root_rank =
@@ -192,11 +191,11 @@ void NCCLHierarchicalAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entri
       is_root_rank ? buffer_len_per_rank + buffer_len_remaining
                    : buffer_len_per_rank;
 
-  auto& timeline = global_state_->timeline;
+  auto &timeline = global_state_->timeline;
   if (num_elements_per_rank > 0) {
     auto nccl_result = ncclReduceScatter(fused_input_data,
                                          buffer_data_at_rank_offset,
-                                         (size_t)num_elements_per_rank,
+                                         (size_t) num_elements_per_rank,
                                          GetNCCLDataType(first_entry.tensor),
                                          ncclSum, *nccl_comm_, *stream_);
     nccl_context_->ErrorCheck("ncclReduceScatter", nccl_result);
@@ -208,7 +207,7 @@ void NCCLHierarchicalAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entri
     // existing buffer
     auto nccl_result = ncclReduce(fused_input_data_remainder,
                                   buffer_data_remainder,
-                                  (size_t)num_elements_remaining,
+                                  (size_t) num_elements_remaining,
                                   GetNCCLDataType(first_entry.tensor), ncclSum,
                                   root_rank, *nccl_comm_, *stream_);
     nccl_context_->ErrorCheck("ncclReduce", nccl_result);
@@ -236,7 +235,7 @@ void NCCLHierarchicalAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entri
 
     timeline.ActivityStartAll(entries, MPI_ALLREDUCE);
     cpu_channel_->Allreduce(host_buffer_, total_num_elements, first_entry,
-                             nullptr, Channel::Communicator::CROSS);
+                            nullptr, Channel::Communicator::CROSS);
     timeline.ActivityEndAll(entries);
 
     timeline.ActivityStartAll(entries, MEMCPY_OUT_HOST_BUFFER);
@@ -250,7 +249,7 @@ void NCCLHierarchicalAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entri
   if (num_elements_per_rank > 0) {
     nccl_context_->ErrorCheck("ncclAllGather",
                               ncclAllGather(buffer_data_at_rank_offset, buffer_data,
-                                            (size_t)num_elements_per_rank,
+                                            (size_t) num_elements_per_rank,
                                             GetNCCLDataType(first_entry.tensor),
                                             *nccl_comm_, *stream_));
     RecordEventEnd(NCCL_ALLGATHER, entries);
@@ -258,14 +257,14 @@ void NCCLHierarchicalAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entri
   if (num_elements_remaining > 0) {
     nccl_context_->ErrorCheck("ncclBcast",
                               ncclBcast(buffer_data_remainder,
-                                        (size_t)num_elements_remaining,
+                                        (size_t) num_elements_remaining,
                                         GetNCCLDataType(first_entry.tensor), root_rank,
                                         *nccl_comm_, *stream_));
     RecordEventEnd(NCCL_BCAST, entries);
   }
 }
 
-const std::vector<int32_t> NCCLHierarchicalAllreduce::GetDeviceMap(const std::vector<int32_t>& devices) {
+const std::vector<int32_t> NCCLHierarchicalAllreduce::GetDeviceMap(const std::vector<int32_t> &devices) {
   std::vector<int32_t> nccl_device_map;
   nccl_device_map.reserve(global_state_->local_comm_ranks.size());
   for (int rank : global_state_->local_comm_ranks) {
@@ -274,8 +273,8 @@ const std::vector<int32_t> NCCLHierarchicalAllreduce::GetDeviceMap(const std::ve
   return nccl_device_map;
 }
 
-void NCCLHierarchicalAllreduce::SetCommStrategy(int& nccl_rank, int& nccl_size,
-                                            Channel::Communicator& nccl_id_bcast_comm) {
+void NCCLHierarchicalAllreduce::PopulateCommStrategy(int &nccl_rank, int &nccl_size,
+                                                     Channel::Communicator &nccl_id_bcast_comm) {
   nccl_rank = global_state_->local_rank;
   nccl_size = global_state_->local_size;
   nccl_id_bcast_comm = Channel::Communicator::LOCAL;

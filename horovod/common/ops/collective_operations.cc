@@ -205,7 +205,6 @@ Status AllgatherOp::Execute(std::vector<TensorTableEntry>& entries, const MPIRes
               entry_component_offsets, entry_component_sizes,
               total_size, element_size);
 
-
   return Status::OK();
 }
 

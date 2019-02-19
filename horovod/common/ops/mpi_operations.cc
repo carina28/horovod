@@ -136,8 +136,8 @@ MPI_Comm MPIChannel::GetMPICommunicator(Communicator comm) {
 }
 
 void DoMPIAllreduce(MPIChannel* mpi_channel,
-                   std::vector<TensorTableEntry>& entries,
-                   void* buffer_data, int64_t& num_elements, size_t& buffer_len) {
+                    std::vector<TensorTableEntry>& entries,
+                    void* buffer_data, int64_t& num_elements, size_t& buffer_len) {
   auto& first_entry = entries[0];
   const void* sendbuf = entries.size() > 1 || first_entry.tensor->data() == first_entry.output->data()
                         ? nullptr : first_entry.tensor->data();
@@ -162,7 +162,7 @@ void MPIAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entries,
 }
 
 #if HAVE_CUDA
-MPI_CUDAAllreduce::MPI_CUDAAllreduce(MPIContext* mpi_channel,
+MPI_CUDAAllreduce::MPI_CUDAAllreduce(MPIChannel* mpi_channel,
                                      HorovodGlobalState* global_state)
                                      : CUDAAllreduce(cuda_context, comm_context, global_state),
                                        mpi_channel_(mpi_channel) {}

@@ -42,8 +42,8 @@ protected:
                    int64_t& num_elements, size_t& buffer_len) override;
 
   virtual const std::vector<int32_t> GetDeviceMap(const std::vector<int32_t>& devices);
-  virtual void SetCommStrategy(int& nccl_rank, int& nccl_size,
-                               Channel::Communicator& nccl_id_bcast_comm);
+  virtual void PopulateCommStrategy(int &nccl_rank, int &nccl_size,
+                                    Channel::Communicator &nccl_id_bcast_comm);
 
   NCCLContext* nccl_context_;
   ncclComm_t* nccl_comm_;
@@ -67,8 +67,8 @@ protected:
 
 private:
   const std::vector<int32_t> GetDeviceMap(const std::vector<int32_t>& devices) override;
-  void SetCommStrategy(int& nccl_rank, int& nccl_size,
-                       Channel::Communicator& nccl_id_bcast_comm) override;
+  void PopulateCommStrategy(int &nccl_rank, int &nccl_size,
+                            Channel::Communicator &nccl_id_bcast_comm) override;
 };
 
 } // namespace common

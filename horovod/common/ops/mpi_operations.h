@@ -43,8 +43,8 @@ using MessageTable = std::unordered_map<
 
 class MPIChannel : public Channel {
 public:
-  void Allreduce(const void* buffer_data, int64_t num_elements,
-                 TensorTableEntry& first_entry, const void* sendbuff,
+  void Allreduce(const void *buffer_data, int64_t num_elements,
+                 TensorTableEntry &first_entry, const void *sendbuff,
                  Communicator comm) override;
 
   void Allgatherv(const void *sendbuf, int sendcount, DataType sendtype,
@@ -52,22 +52,24 @@ public:
                   const int displs[], DataType recvtype,
                   Communicator comm) override;
 
-  void Broadcast(const void* buffer_data, int64_t num_elements,
+  void Broadcast(const void *buffer_data, int64_t num_elements,
                  DataType dtype, int root_rank,
                  Communicator comm) override;
 
   void Barrier(Communicator comm) override;
 
-  void AllocateSharedBuffer(int64_t window_size, int element_size, void* baseptr, Communicator comm) override;
+  void AllocateSharedBuffer(int64_t window_size, int element_size, void *baseptr, Communicator comm) override;
 
   void FreeSharedBuffer() override;
 
-  void QuerySharedBuffer(int rank, void* baseptr) override;
+  void QuerySharedBuffer(int rank, void *baseptr) override;
 
-  void GetTypeSize(DataType dtype, int* out) override;
+  void GetTypeSize(DataType dtype, int *out) override;
 
   MPI_Datatype GetMPIDataType(std::shared_ptr<Tensor> tensor);
+
   MPI_Datatype GetMPIDataType(DataType dtype);
+
   MPI_Comm GetMPICommunicator(Communicator comm);
 
   // Queue of MPI requests waiting to be sent to the coordinator node.
@@ -98,25 +100,26 @@ public:
 
 class MPIAllreduce : public AllreduceOp {
 public:
-  MPIAllreduce(MPIChannel* mpi_channel, HorovodGlobalState* global_state);
-  virtual ~MPIAllreduce()=default;
+  MPIAllreduce(MPIChannel *mpi_channel, HorovodGlobalState *global_state);
 
-  bool Enabled(ParameterManager& param_manager,
-               std::vector<TensorTableEntry>& entries,
-               const MPIResponse& response) const override;
+  virtual ~MPIAllreduce() = default;
+
+  bool Enabled(ParameterManager &param_manager,
+               std::vector<TensorTableEntry> &entries,
+               const MPIResponse &response) const override;
 
 protected:
-  void DoAllreduce(std::vector<TensorTableEntry>& entries,
-                   const void* fused_input_data, void* buffer_data,
-                   int64_t& num_elements, size_t& buffer_len) override;
+  void DoAllreduce(std::vector<TensorTableEntry> &entries,
+                   const void *fused_input_data, void *buffer_data,
+                   int64_t &num_elements, size_t &buffer_len) override;
 
-  MPIChannel* mpi_channel_;
+  MPIChannel *mpi_channel_;
 };
 
 #if HAVE_CUDA
-class MPI_CUDAAllreduce : public CUDAAlrreduce {
+class MPI_CUDAAllreduce : public CUDAAllreduce {
 public:
-  MPI_CUDAAllreduce(MPIContext* mpi_channel, CUDAContext* cuda_context,
+  MPI_CUDAAllreduce(MPIChannel* mpi_channel, CUDAContext* cuda_context,
                     CommunicationContext* comm_context, HorovodGlobalState* global_state);
   virtual ~MPI_CUDAAllreduce()=default;
 
@@ -125,39 +128,39 @@ protected:
                    const void* fused_input_data, void* buffer_data,
                    int64_t& num_elements, size_t& buffer_len) override;
 
-  MPIContext* mpi_channel_;
+  MPIChannel* mpi_channel_;
 };
 #endif
 
 class MPIAllgather : public AllgatherOp {
 public:
-  MPIAllgather(MPIChannel* mpi_channel, HorovodGlobalState* global_state);
+  MPIAllgather(MPIChannel *mpi_channel, HorovodGlobalState *global_state);
 
-  bool Enabled(ParameterManager& param_manager,
-               std::vector<TensorTableEntry>& entries,
-               const MPIResponse& response) const override;
+  bool Enabled(ParameterManager &param_manager,
+               std::vector<TensorTableEntry> &entries,
+               const MPIResponse &response) const override;
 
 protected:
-  void DoAllgatherv(std::vector<TensorTableEntry>& entries,
+  void DoAllgatherv(std::vector<TensorTableEntry> &entries,
                     const void *sendbuf, int sendcount, DataType sendtype,
                     void *recvbuf, const int recvcounts[],
                     const int displs[], DataType recvtype) override;
 
   int GetElementSize(DataType dtype) const override;
 
-  MPIChannel* mpi_channel_;
+  MPIChannel *mpi_channel_;
 };
 
 class MPIHierarchicalAllgather : public HierarchicalAllgather {
 public:
-  MPIHierarchicalAllgather(MPIChannel* mpi_channel, HorovodGlobalState* global_state);
+  MPIHierarchicalAllgather(MPIChannel *mpi_channel, HorovodGlobalState *global_state);
 
-  bool Enabled(ParameterManager& param_manager,
-               std::vector<TensorTableEntry>& entries,
-               const MPIResponse& response) const override;
+  bool Enabled(ParameterManager &param_manager,
+               std::vector<TensorTableEntry> &entries,
+               const MPIResponse &response) const override;
 
 protected:
-  void DoAllgatherv(std::vector<TensorTableEntry>& entries,
+  void DoAllgatherv(std::vector<TensorTableEntry> &entries,
                     const void *sendbuf, int sendcount, DataType sendtype,
                     void *recvbuf, const int recvcounts[],
                     const int displs[], DataType recvtype) override;
@@ -168,23 +171,23 @@ protected:
 
   void AllocateSharedBuffer(int64_t total_size_in_bytes, int element_size) override;
 
-  MPIChannel* mpi_channel_;
+  MPIChannel *mpi_channel_;
 };
 
 class MPIBroadcast : public BroadcastOp {
 public:
-  MPIBroadcast(MPIChannel* mpi_channel, HorovodGlobalState* global_state);
+  MPIBroadcast(MPIChannel *mpi_channel, HorovodGlobalState *global_state);
 
-  bool Enabled(ParameterManager& param_manager,
-               std::vector<TensorTableEntry>& entries,
-               const MPIResponse& response) const override;
+  bool Enabled(ParameterManager &param_manager,
+               std::vector<TensorTableEntry> &entries,
+               const MPIResponse &response) const override;
 
 protected:
-  void DoBroadcast(std::vector<TensorTableEntry>& entries,
-                   const void* buffer_data, int64_t num_elements,
+  void DoBroadcast(std::vector<TensorTableEntry> &entries,
+                   const void *buffer_data, int64_t num_elements,
                    DataType dtype, int root_rank) override;
 
-  MPIChannel* mpi_channel_;
+  MPIChannel *mpi_channel_;
 };
 
 } // namespace common
