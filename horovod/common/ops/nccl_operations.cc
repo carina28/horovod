@@ -95,7 +95,9 @@ void NCCLAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entries,
                                    GetNCCLDataType(first_entry.tensor), ncclSum,
                                    *nccl_comm_, *stream_);
   nccl_context_->ErrorCheck("ncclAllReduce", nccl_result);
-  RecordEventEnd(NCCL_ALLREDUCE, entries);
+  if (global_state_->timeline.Initialized()) {
+    cuda_context_->RecordEvent(event_queue_, NCCL_ALLREDUCE, stream);
+  }
 }
 
 const std::vector<int32_t> NCCLAllreduce::GetDeviceMap(const std::vector<int32_t>& devices) {
@@ -199,7 +201,9 @@ void NCCLHierarchicalAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entri
                                          GetNCCLDataType(first_entry.tensor),
                                          ncclSum, *nccl_comm_, *stream_);
     nccl_context_->ErrorCheck("ncclReduceScatter", nccl_result);
-    RecordEventEnd(NCCL_REDUCESCATTER, entries);
+    if (global_state_->timeline.Initialized()) {
+      cuda_context_->RecordEvent(event_queue_, NCCL_REDUCESCATTER, stream);
+    }
   }
 
   if (num_elements_remaining > 0) {
@@ -211,7 +215,9 @@ void NCCLHierarchicalAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entri
                                   GetNCCLDataType(first_entry.tensor), ncclSum,
                                   root_rank, *nccl_comm_, *stream_);
     nccl_context_->ErrorCheck("ncclReduce", nccl_result);
-    RecordEventEnd(NCCL_REDUCE, entries);
+    if (global_state_->timeline.Initialized()) {
+      cuda_context_->RecordEvent(event_queue_, NCCL_REDUCE, stream);
+    }
   }
 
   if (global_state_->is_homogeneous || is_root_rank) {
@@ -252,7 +258,9 @@ void NCCLHierarchicalAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entri
                                             (size_t) num_elements_per_rank,
                                             GetNCCLDataType(first_entry.tensor),
                                             *nccl_comm_, *stream_));
-    RecordEventEnd(NCCL_ALLGATHER, entries);
+    if (global_state_->timeline.Initialized()) {
+      cuda_context_->RecordEvent(event_queue_, NCCL_ALLGATHER, stream);
+    }
   }
   if (num_elements_remaining > 0) {
     nccl_context_->ErrorCheck("ncclBcast",
@@ -260,7 +268,9 @@ void NCCLHierarchicalAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entri
                                         (size_t) num_elements_remaining,
                                         GetNCCLDataType(first_entry.tensor), root_rank,
                                         *nccl_comm_, *stream_));
-    RecordEventEnd(NCCL_BCAST, entries);
+    if (global_state_->timeline.Initialized()) {
+      cuda_context_->RecordEvent(event_queue_, NCCL_BCAST, stream);
+    }
   }
 }
 

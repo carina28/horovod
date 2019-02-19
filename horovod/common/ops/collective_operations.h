@@ -58,17 +58,19 @@ protected:
 
   virtual Status Finalize(std::vector<TensorTableEntry>& entries);
 
+  virtual void StartMemcpyInFusionBuffer(std::vector<TensorTableEntry>& entries);
+
   virtual void MemcpyInFusionBuffer(void* buffer_data_at_offset, TensorTableEntry& e,
                                     std::vector<TensorTableEntry>& entries);
+
+  virtual void EndMemcpyInFusionBuffer(std::vector<TensorTableEntry>& entries);
+
+  virtual void StartMemcpyOutFusionBuffer(std::vector<TensorTableEntry>& entries);
 
   virtual void MemcpyOutFusionBuffer(void* buffer_data_at_offset, TensorTableEntry& e,
                                      std::vector<TensorTableEntry>& entries);
 
-  virtual void StreamSynchronize(std::vector<TensorTableEntry>& entries);
-
-  virtual void RecordEventStart(std::string event_name, std::vector<TensorTableEntry>& entries);
-
-  virtual void RecordEventEnd(std::string event_name, std::vector<TensorTableEntry>& entries);
+  virtual void EndMemcpyOutFusionBuffer(std::vector<TensorTableEntry>& entries);
 };
 
 class AllgatherOp : public HorovodOp {

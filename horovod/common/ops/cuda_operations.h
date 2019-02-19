@@ -75,10 +75,12 @@ protected:
   void MemcpyInFusionBuffer(void* buffer_data_at_offset, TensorTableEntry& e,
                             std::vector<TensorTableEntry>& entries) override;
 
+  void EndMemcpyInFusionBuffer(std::vector<TensorTableEntry>& entries) override;
+
   void MemcpyOutFusionBuffer(void* buffer_data_at_offset, TensorTableEntry& e,
                              std::vector<TensorTableEntry>& entries) override;
 
-  void StreamSynchronize(std::vector<TensorTableEntry>& entries) override;
+  void EndMemcpyOutFusionBuffer(std::vector<TensorTableEntry>& entries) override;
 
   void InitCUDA(std::vector<TensorTableEntry>& entries);
 
@@ -100,11 +102,13 @@ protected:
 
   Status Finalize(std::vector<TensorTableEntry>& entries) override;
 
-  void StreamSynchronize(std::vector<TensorTableEntry>& entries) override;
+  void StartMemcpyInFusionBuffer(std::vector<TensorTableEntry>& entries) override;
 
-  void RecordEventStart(std::string event_name, std::vector<TensorTableEntry>& entries) override;
+  void EndMemcpyInFusionBuffer(std::vector<TensorTableEntry>& entries) override;
 
-  void RecordEventEnd(std::string event_name, std::vector<TensorTableEntry>& entries) override;
+  void StartMemcpyOutFusionBuffer(std::vector<TensorTableEntry>& entries) override;
+
+  void EndMemcpyOutFusionBuffer(std::vector<TensorTableEntry>& entries) override;
 
   std::queue<std::pair<std::string, cudaEvent_t>> event_queue_;
   cudaStream_t* stream_;
