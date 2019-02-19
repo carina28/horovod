@@ -24,25 +24,26 @@ namespace common {
 
 class OperationManager {
 public:
-  OperationManager(ParameterManager* param_manager,
+  OperationManager(ParameterManager *param_manager,
                    std::vector<std::shared_ptr<AllreduceOp>> allreduce_ops,
                    std::vector<std::shared_ptr<AllgatherOp>> allgather_ops,
                    std::vector<std::shared_ptr<BroadcastOp>> broadcast_ops,
                    std::shared_ptr<ErrorOp> error_op);
-  virtual ~OperationManager()=default;
 
-  Status ExecuteAllreduce(std::vector<TensorTableEntry>& entries, const MPIResponse& response) const;
+  virtual ~OperationManager() = default;
 
-  Status ExecuteAllgather(std::vector<TensorTableEntry>& entries, const MPIResponse& response) const;
+  Status ExecuteAllreduce(std::vector<TensorTableEntry> &entries, const MPIResponse &response) const;
 
-  Status ExecuteBroadcast(std::vector<TensorTableEntry>& entries, const MPIResponse& response) const;
+  Status ExecuteAllgather(std::vector<TensorTableEntry> &entries, const MPIResponse &response) const;
 
-  Status ExecuteError(std::vector<TensorTableEntry>& entries, const MPIResponse& response) const;
+  Status ExecuteBroadcast(std::vector<TensorTableEntry> &entries, const MPIResponse &response) const;
 
-  Status ExecuteOperation(std::vector<TensorTableEntry>& entries, const MPIResponse& response) const;
+  Status ExecuteError(std::vector<TensorTableEntry> &entries, const MPIResponse &response) const;
+
+  Status ExecuteOperation(std::vector<TensorTableEntry> &entries, const MPIResponse &response) const;
 
 private:
-  ParameterManager* param_manager_;
+  ParameterManager *param_manager_;
 
   std::vector<std::shared_ptr<AllreduceOp>> allreduce_ops_;
   std::vector<std::shared_ptr<AllgatherOp>> allgather_ops_;

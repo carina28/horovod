@@ -19,10 +19,10 @@
 namespace horovod {
 namespace common {
 
-void MPIChannel::Allreduce(const void* buffer_data, int64_t num_elements,
-                           TensorTableEntry& first_entry, const void* sendbuff,
+void MPIChannel::Allreduce(const void *buffer_data, int64_t num_elements,
+                           TensorTableEntry &first_entry, const void *sendbuff,
                            Communicator comm) {
-  int op = MPI_Allreduce(sendbuff != nullptr ? sendbuff : MPI_IN_PLACE, (void*) buffer_data,
+  int op = MPI_Allreduce(sendbuff != nullptr ? sendbuff : MPI_IN_PLACE, (void *) buffer_data,
                          (int) num_elements,
                          GetMPIDataType(first_entry.tensor),
                          first_entry.tensor->dtype() == HOROVOD_FLOAT16 ? mpi_float16_sum : MPI_SUM,
@@ -44,10 +44,10 @@ void MPIChannel::Allgatherv(const void *sendbuf, int sendcount, DataType sendtyp
   }
 }
 
-void MPIChannel::Broadcast(const void* buffer_data, int64_t num_elements,
+void MPIChannel::Broadcast(const void *buffer_data, int64_t num_elements,
                            DataType dtype, int root_rank,
                            Communicator comm) {
-  int op = MPI_Bcast((void*) buffer_data,
+  int op = MPI_Bcast((void *) buffer_data,
                      (int) num_elements,
                      GetMPIDataType(dtype),
                      root_rank,
@@ -64,7 +64,7 @@ void MPIChannel::Barrier(Communicator comm) {
   }
 }
 
-void MPIChannel::AllocateSharedBuffer(int64_t window_size, int element_size, void* baseptr, Communicator comm) {
+void MPIChannel::AllocateSharedBuffer(int64_t window_size, int element_size, void *baseptr, Communicator comm) {
   MPI_Win_allocate_shared(
       window_size, element_size, MPI_INFO_NULL, GetMPICommunicator(comm),
       baseptr, &window);
@@ -75,13 +75,13 @@ void MPIChannel::FreeSharedBuffer() {
   MPI_Win_free(&window);
 }
 
-void MPIChannel::QuerySharedBuffer(int rank, void* baseptr) {
+void MPIChannel::QuerySharedBuffer(int rank, void *baseptr) {
   int disp_unit;
   MPI_Aint winsize;
   MPI_Win_shared_query(window, rank, &winsize, &disp_unit, baseptr);
 }
 
-void MPIChannel::GetTypeSize(DataType dtype, int* out) {
+void MPIChannel::GetTypeSize(DataType dtype, int *out) {
   MPI_Type_size(GetMPIDataType(dtype), out);
 }
 
@@ -135,27 +135,27 @@ MPI_Comm MPIChannel::GetMPICommunicator(Communicator comm) {
   }
 }
 
-void DoMPIAllreduce(MPIChannel* mpi_channel,
-                    std::vector<TensorTableEntry>& entries,
-                    void* buffer_data, int64_t& num_elements, size_t& buffer_len) {
-  auto& first_entry = entries[0];
-  const void* sendbuf = entries.size() > 1 || first_entry.tensor->data() == first_entry.output->data()
+void DoMPIAllreduce(MPIChannel *mpi_channel,
+                    std::vector<TensorTableEntry> &entries,
+                    void *buffer_data, int64_t &num_elements, size_t &buffer_len) {
+  auto &first_entry = entries[0];
+  const void *sendbuf = entries.size() > 1 || first_entry.tensor->data() == first_entry.output->data()
                         ? nullptr : first_entry.tensor->data();
   mpi_channel->Allreduce(buffer_data, num_elements, first_entry, sendbuf, Channel::Communicator::GLOBAL);
 }
 
-MPIAllreduce::MPIAllreduce(MPIChannel* mpi_channel, HorovodGlobalState* global_state)
-                           : AllreduceOp(global_state), mpi_channel_(mpi_channel) {}
+MPIAllreduce::MPIAllreduce(MPIChannel *mpi_channel, HorovodGlobalState *global_state)
+    : AllreduceOp(global_state), mpi_channel_(mpi_channel) {}
 
-bool MPIAllreduce::Enabled(ParameterManager& param_manager,
-                           std::vector<TensorTableEntry>& entries,
-                           const MPIResponse& response) const {
+bool MPIAllreduce::Enabled(ParameterManager &param_manager,
+                           std::vector<TensorTableEntry> &entries,
+                           const MPIResponse &response) const {
   return true;
 }
 
-void MPIAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entries,
-                               const void* fused_input_data, void* buffer_data,
-                               int64_t& num_elements, size_t& buffer_len) {
+void MPIAllreduce::DoAllreduce(std::vector<TensorTableEntry> &entries,
+                               const void *fused_input_data, void *buffer_data,
+                               int64_t &num_elements, size_t &buffer_len) {
   RecordEventStart(MPI_ALLREDUCE, entries);
   DoMPIAllreduce(mpi_channel_, entries, buffer_data, num_elements, buffer_len);
   RecordEventEnd(MPI_ALLREDUCE, entries);
@@ -176,16 +176,16 @@ void MPI_CUDAAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entries,
 }
 #endif
 
-MPIAllgather::MPIAllgather(MPIChannel* mpi_channel, HorovodGlobalState* global_state)
-                           : AllgatherOp(global_state), mpi_channel_(mpi_channel) {}
+MPIAllgather::MPIAllgather(MPIChannel *mpi_channel, HorovodGlobalState *global_state)
+    : AllgatherOp(global_state), mpi_channel_(mpi_channel) {}
 
-bool MPIAllgather::Enabled(ParameterManager& param_manager,
-                           std::vector<TensorTableEntry>& entries,
-                           const MPIResponse& response) const {
+bool MPIAllgather::Enabled(ParameterManager &param_manager,
+                           std::vector<TensorTableEntry> &entries,
+                           const MPIResponse &response) const {
   return true;
 }
 
-void MPIAllgather::DoAllgatherv(std::vector<TensorTableEntry>& entries,
+void MPIAllgather::DoAllgatherv(std::vector<TensorTableEntry> &entries,
                                 const void *sendbuf, int sendcount, DataType sendtype,
                                 void *recvbuf, const int recvcounts[],
                                 const int displs[], DataType recvtype) {
@@ -201,18 +201,18 @@ int MPIAllgather::GetElementSize(DataType dtype) const {
   return element_size;
 }
 
-MPIHierarchicalAllgather::MPIHierarchicalAllgather(MPIChannel* mpi_channel,
-                                                   HorovodGlobalState* global_state)
-                                                   : HierarchicalAllgather(global_state),
-                                                     mpi_channel_(mpi_channel) {}
+MPIHierarchicalAllgather::MPIHierarchicalAllgather(MPIChannel *mpi_channel,
+                                                   HorovodGlobalState *global_state)
+    : HierarchicalAllgather(global_state),
+      mpi_channel_(mpi_channel) {}
 
-bool MPIHierarchicalAllgather::Enabled(ParameterManager& param_manager,
-                                       std::vector<TensorTableEntry>& entries,
-                                       const MPIResponse& response) const {
+bool MPIHierarchicalAllgather::Enabled(ParameterManager &param_manager,
+                                       std::vector<TensorTableEntry> &entries,
+                                       const MPIResponse &response) const {
   return param_manager.HierarchicalAllgather();
 }
 
-void MPIHierarchicalAllgather::DoAllgatherv(std::vector<TensorTableEntry>& entries,
+void MPIHierarchicalAllgather::DoAllgatherv(std::vector<TensorTableEntry> &entries,
                                             const void *sendbuf, int sendcount, DataType sendtype,
                                             void *recvbuf, const int recvcounts[],
                                             const int displs[], DataType recvtype) {
@@ -241,28 +241,28 @@ void MPIHierarchicalAllgather::FreeSharedBuffer() {
 void MPIHierarchicalAllgather::AllocateSharedBuffer(int64_t total_size_in_bytes, int element_size) {
   int64_t window_size = global_state_->local_rank == 0 ? total_size_in_bytes : 0;
   mpi_channel_->AllocateSharedBuffer(window_size, element_size, &global_state_->shared_buffer,
-                                      Channel::Communicator::LOCAL);
+                                     Channel::Communicator::LOCAL);
   if (global_state_->local_rank != 0) {
     mpi_channel_->QuerySharedBuffer(0, &global_state_->shared_buffer);
   }
   global_state_->shared_buffer_size = total_size_in_bytes;
 }
 
-MPIBroadcast::MPIBroadcast(MPIChannel* mpi_channel, HorovodGlobalState* global_state)
-                           : BroadcastOp(global_state), mpi_channel_(mpi_channel) {}
+MPIBroadcast::MPIBroadcast(MPIChannel *mpi_channel, HorovodGlobalState *global_state)
+    : BroadcastOp(global_state), mpi_channel_(mpi_channel) {}
 
-bool MPIBroadcast::Enabled(ParameterManager& param_manager,
-                           std::vector<TensorTableEntry>& entries,
-                           const MPIResponse& response) const {
+bool MPIBroadcast::Enabled(ParameterManager &param_manager,
+                           std::vector<TensorTableEntry> &entries,
+                           const MPIResponse &response) const {
   return true;
 }
 
-void MPIBroadcast::DoBroadcast(std::vector<TensorTableEntry>& entries,
-                               const void* buffer_data, int64_t num_elements,
+void MPIBroadcast::DoBroadcast(std::vector<TensorTableEntry> &entries,
+                               const void *buffer_data, int64_t num_elements,
                                DataType dtype, int root_rank) {
   global_state_->timeline.ActivityStartAll(entries, MPI_BCAST);
   mpi_channel_->Broadcast(buffer_data, num_elements, dtype, root_rank,
-                           Channel::Communicator::GLOBAL);
+                          Channel::Communicator::GLOBAL);
   global_state_->timeline.ActivityEndAll(entries);
 }
 

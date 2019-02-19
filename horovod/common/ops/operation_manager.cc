@@ -18,20 +18,20 @@
 namespace horovod {
 namespace common {
 
-OperationManager::OperationManager(ParameterManager* param_manager,
+OperationManager::OperationManager(ParameterManager *param_manager,
                                    std::vector<std::shared_ptr<AllreduceOp>> allreduce_ops,
                                    std::vector<std::shared_ptr<AllgatherOp>> allgather_ops,
                                    std::vector<std::shared_ptr<BroadcastOp>> broadcast_ops,
                                    std::shared_ptr<ErrorOp> error_op)
-                                   : param_manager_(param_manager),
-                                     allreduce_ops_(std::move(allreduce_ops)),
-                                     allgather_ops_(std::move(allgather_ops)),
-                                     broadcast_ops_(std::move(broadcast_ops)),
-                                     error_op_(std::move(error_op)) {}
+    : param_manager_(param_manager),
+      allreduce_ops_(std::move(allreduce_ops)),
+      allgather_ops_(std::move(allgather_ops)),
+      broadcast_ops_(std::move(broadcast_ops)),
+      error_op_(std::move(error_op)) {}
 
-Status OperationManager::ExecuteAllreduce(std::vector<TensorTableEntry>& entries,
-                                          const MPIResponse& response) const {
-  for (auto& op : allreduce_ops_) {
+Status OperationManager::ExecuteAllreduce(std::vector<TensorTableEntry> &entries,
+                                          const MPIResponse &response) const {
+  for (auto &op : allreduce_ops_) {
     if (op->Enabled(*param_manager_, entries, response)) {
       return op->Execute(entries, response);
     }
@@ -39,9 +39,9 @@ Status OperationManager::ExecuteAllreduce(std::vector<TensorTableEntry>& entries
   throw std::logic_error("No Allreduce operation enabled");
 }
 
-Status OperationManager::ExecuteAllgather(std::vector<TensorTableEntry>& entries,
-                                          const MPIResponse& response) const {
-  for (auto& op : allgather_ops_) {
+Status OperationManager::ExecuteAllgather(std::vector<TensorTableEntry> &entries,
+                                          const MPIResponse &response) const {
+  for (auto &op : allgather_ops_) {
     if (op->Enabled(*param_manager_, entries, response)) {
       return op->Execute(entries, response);
     }
@@ -49,9 +49,9 @@ Status OperationManager::ExecuteAllgather(std::vector<TensorTableEntry>& entries
   throw std::logic_error("No Allgather operation enabled");
 }
 
-Status OperationManager::ExecuteBroadcast(std::vector<TensorTableEntry>& entries,
-                                          const MPIResponse& response) const {
-  for (auto& op : broadcast_ops_) {
+Status OperationManager::ExecuteBroadcast(std::vector<TensorTableEntry> &entries,
+                                          const MPIResponse &response) const {
+  for (auto &op : broadcast_ops_) {
     if (op->Enabled(*param_manager_, entries, response)) {
       return op->Execute(entries, response);
     }
@@ -59,13 +59,13 @@ Status OperationManager::ExecuteBroadcast(std::vector<TensorTableEntry>& entries
   throw std::logic_error("No Broadcast operation enabled");
 }
 
-Status OperationManager::ExecuteError(std::vector<TensorTableEntry>& entries,
-                                      const MPIResponse& response) const {
+Status OperationManager::ExecuteError(std::vector<TensorTableEntry> &entries,
+                                      const MPIResponse &response) const {
   return error_op_->Execute(entries, response);
 }
 
-Status OperationManager::ExecuteOperation(std::vector<TensorTableEntry>& entries,
-                                          const MPIResponse& response) const {
+Status OperationManager::ExecuteOperation(std::vector<TensorTableEntry> &entries,
+                                          const MPIResponse &response) const {
   if (response.response_type() == MPIResponse::ALLREDUCE) {
     return ExecuteAllreduce(entries, response);
   } else if (response.response_type() == MPIResponse::ALLGATHER) {

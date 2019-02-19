@@ -32,41 +32,44 @@ struct NCCLContext {
 
 class NCCLAllreduce : public CUDAAllreduceAsync {
 public:
-  NCCLAllreduce(NCCLContext* nccl_context, Channel* cpu_channel,
-                CUDAContext* cuda_context, HorovodGlobalState* global_state);
+  NCCLAllreduce(NCCLContext *nccl_context, Channel *cpu_channel,
+                CUDAContext *cuda_context, HorovodGlobalState *global_state);
 
 protected:
-  void InitComm(std::vector<TensorTableEntry>& entries, const std::vector<int32_t>& devices) override;
-  void DoAllreduce(std::vector<TensorTableEntry>& entries,
-                   const void* fused_input_data, void* buffer_data,
-                   int64_t& num_elements, size_t& buffer_len) override;
+  void InitComm(std::vector<TensorTableEntry> &entries, const std::vector<int32_t> &devices) override;
 
-  virtual const std::vector<int32_t> GetDeviceMap(const std::vector<int32_t>& devices);
+  void DoAllreduce(std::vector<TensorTableEntry> &entries,
+                   const void *fused_input_data, void *buffer_data,
+                   int64_t &num_elements, size_t &buffer_len) override;
+
+  virtual const std::vector<int32_t> GetDeviceMap(const std::vector<int32_t> &devices);
+
   virtual void PopulateCommStrategy(int &nccl_rank, int &nccl_size,
                                     Channel::Communicator &nccl_id_bcast_comm);
 
-  NCCLContext* nccl_context_;
-  ncclComm_t* nccl_comm_;
+  NCCLContext *nccl_context_;
+  ncclComm_t *nccl_comm_;
 
-  Channel* cpu_channel_;
+  Channel *cpu_channel_;
 };
 
 class NCCLHierarchicalAllreduce : public NCCLAllreduce {
 public:
-  NCCLHierarchicalAllreduce(NCCLContext* nccl_context, Channel* cpu_channel,
-                            CUDAContext* cuda_context, HorovodGlobalState* global_state);
+  NCCLHierarchicalAllreduce(NCCLContext *nccl_context, Channel *cpu_channel,
+                            CUDAContext *cuda_context, HorovodGlobalState *global_state);
 
-  bool Enabled(ParameterManager& param_manager,
-               std::vector<TensorTableEntry>& entries,
-               const MPIResponse& response) const override;
+  bool Enabled(ParameterManager &param_manager,
+               std::vector<TensorTableEntry> &entries,
+               const MPIResponse &response) const override;
 
 protected:
-  void DoAllreduce(std::vector<TensorTableEntry>& entries,
-                   const void* fused_input_data, void* buffer_data,
-                   int64_t& num_elements, size_t& buffer_len) override;
+  void DoAllreduce(std::vector<TensorTableEntry> &entries,
+                   const void *fused_input_data, void *buffer_data,
+                   int64_t &num_elements, size_t &buffer_len) override;
 
 private:
-  const std::vector<int32_t> GetDeviceMap(const std::vector<int32_t>& devices) override;
+  const std::vector<int32_t> GetDeviceMap(const std::vector<int32_t> &devices) override;
+
   void PopulateCommStrategy(int &nccl_rank, int &nccl_size,
                             Channel::Communicator &nccl_id_bcast_comm) override;
 };

@@ -29,63 +29,66 @@ namespace common {
 
 class HorovodOp {
 public:
-  HorovodOp(HorovodGlobalState* global_state);
-  virtual Status Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response) = 0;
+  HorovodOp(HorovodGlobalState *global_state);
+
+  virtual Status Execute(std::vector<TensorTableEntry> &entries, const MPIResponse &response) = 0;
 
 protected:
-  HorovodGlobalState* global_state_;
+  HorovodGlobalState *global_state_;
 };
 
 class AllreduceOp : public HorovodOp {
 public:
-  AllreduceOp(HorovodGlobalState* global_state);
-  virtual ~AllreduceOp()=default;
+  AllreduceOp(HorovodGlobalState *global_state);
 
-  virtual Status Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response);
+  virtual ~AllreduceOp() = default;
 
-  virtual bool Enabled(ParameterManager& param_manager,
-                       std::vector<TensorTableEntry>& entries,
-                       const MPIResponse& response) const = 0;
+  virtual Status Execute(std::vector<TensorTableEntry> &entries, const MPIResponse &response);
+
+  virtual bool Enabled(ParameterManager &param_manager,
+                       std::vector<TensorTableEntry> &entries,
+                       const MPIResponse &response) const = 0;
 
 protected:
-  virtual void DoAllreduce(std::vector<TensorTableEntry>& entries,
-                           const void* fused_input_data, void* buffer_data,
-                           int64_t& num_elements, size_t& buffer_len) = 0;
+  virtual void DoAllreduce(std::vector<TensorTableEntry> &entries,
+                           const void *fused_input_data, void *buffer_data,
+                           int64_t &num_elements, size_t &buffer_len) = 0;
 
-  virtual void Initialize(std::vector<TensorTableEntry>& entries, const MPIResponse& response);
+  virtual void Initialize(std::vector<TensorTableEntry> &entries, const MPIResponse &response);
 
-  virtual Status Finalize(std::vector<TensorTableEntry>& entries);
+  virtual Status Finalize(std::vector<TensorTableEntry> &entries);
 
-  virtual void MemcpyInFusionBuffer(void* buffer_data_at_offset, TensorTableEntry& e,
-                                    std::vector<TensorTableEntry>& entries);
+  virtual void MemcpyInFusionBuffer(void *buffer_data_at_offset, TensorTableEntry &e,
+                                    std::vector<TensorTableEntry> &entries);
 
-  virtual void MemcpyOutFusionBuffer(void* buffer_data_at_offset, TensorTableEntry& e,
-                                     std::vector<TensorTableEntry>& entries);
+  virtual void MemcpyOutFusionBuffer(void *buffer_data_at_offset, TensorTableEntry &e,
+                                     std::vector<TensorTableEntry> &entries);
 
-  virtual void StreamSynchronize(std::vector<TensorTableEntry>& entries);
+  virtual void StreamSynchronize(std::vector<TensorTableEntry> &entries);
 
-  virtual void RecordEventStart(std::string event_name, std::vector<TensorTableEntry>& entries);
+  virtual void RecordEventStart(std::string event_name, std::vector<TensorTableEntry> &entries);
 
-  virtual void RecordEventEnd(std::string event_name, std::vector<TensorTableEntry>& entries);
+  virtual void RecordEventEnd(std::string event_name, std::vector<TensorTableEntry> &entries);
 };
 
 class AllgatherOp : public HorovodOp {
 public:
-  AllgatherOp(HorovodGlobalState* global_state);
-  virtual ~AllgatherOp()=default;
+  AllgatherOp(HorovodGlobalState *global_state);
 
-  virtual Status Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response);
+  virtual ~AllgatherOp() = default;
 
-  virtual bool Enabled(ParameterManager& param_manager,
-                       std::vector<TensorTableEntry>& entries,
-                       const MPIResponse& response) const = 0;
+  virtual Status Execute(std::vector<TensorTableEntry> &entries, const MPIResponse &response);
+
+  virtual bool Enabled(ParameterManager &param_manager,
+                       std::vector<TensorTableEntry> &entries,
+                       const MPIResponse &response) const = 0;
 
 protected:
-  virtual void DoAllgather(std::vector<TensorTableEntry>& entries, int* recvcounts, int* displcmnts,
-                           int64_t** entry_component_offsets, int64_t** entry_component_sizes,
+  virtual void DoAllgather(std::vector<TensorTableEntry> &entries, int *recvcounts, int *displcmnts,
+                           int64_t **entry_component_offsets, int64_t **entry_component_sizes,
                            int64_t total_size, int element_size);
 
-  virtual void DoAllgatherv(std::vector<TensorTableEntry>& entries,
+  virtual void DoAllgatherv(std::vector<TensorTableEntry> &entries,
                             const void *sendbuf, int sendcount, DataType sendtype,
                             void *recvbuf, const int recvcounts[],
                             const int displs[], DataType recvtype) = 0;
@@ -95,36 +98,38 @@ protected:
 
 class BroadcastOp : public HorovodOp {
 public:
-  BroadcastOp(HorovodGlobalState* global_state);
-  virtual ~BroadcastOp()=default;
+  BroadcastOp(HorovodGlobalState *global_state);
 
-  virtual Status Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response);
+  virtual ~BroadcastOp() = default;
 
-  virtual bool Enabled(ParameterManager& param_manager,
-                       std::vector<TensorTableEntry>& entries,
-                       const MPIResponse& response) const;
+  virtual Status Execute(std::vector<TensorTableEntry> &entries, const MPIResponse &response);
+
+  virtual bool Enabled(ParameterManager &param_manager,
+                       std::vector<TensorTableEntry> &entries,
+                       const MPIResponse &response) const;
 
 protected:
-  virtual void DoBroadcast(std::vector<TensorTableEntry>& entries,
-                           const void* buffer_data, int64_t num_elements,
+  virtual void DoBroadcast(std::vector<TensorTableEntry> &entries,
+                           const void *buffer_data, int64_t num_elements,
                            DataType dtype, int root_rank) = 0;
 };
 
 class ErrorOp : public HorovodOp {
 public:
-  ErrorOp(HorovodGlobalState* global_state);
-  virtual ~ErrorOp()=default;
+  ErrorOp(HorovodGlobalState *global_state);
 
-  virtual Status Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response);
+  virtual ~ErrorOp() = default;
+
+  virtual Status Execute(std::vector<TensorTableEntry> &entries, const MPIResponse &response);
 };
 
 class HierarchicalAllgather : public AllgatherOp {
 public:
-  HierarchicalAllgather(HorovodGlobalState* global_state);
+  HierarchicalAllgather(HorovodGlobalState *global_state);
 
 protected:
-  void DoAllgather(std::vector<TensorTableEntry>& entries, int* recvcounts, int* displcmnts,
-                   int64_t** entry_component_offsets, int64_t** entry_component_sizes,
+  void DoAllgather(std::vector<TensorTableEntry> &entries, int *recvcounts, int *displcmnts,
+                   int64_t **entry_component_offsets, int64_t **entry_component_sizes,
                    int64_t total_size, int element_size) override;
 
   virtual void Barrier() = 0;
