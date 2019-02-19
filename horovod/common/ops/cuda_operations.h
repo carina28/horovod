@@ -28,7 +28,7 @@ namespace horovod {
 namespace common {
 
 struct CUDAContext {
-  cudaError_t GetCudaEvent(cudaEvent_t *event);
+  cudaError_t GetCudaEvent(cudaEvent_t* event);
 
   cudaError_t ReleaseCudaEvent(cudaEvent_t event);
 
@@ -54,37 +54,37 @@ struct CUDAContext {
 
   void ErrorCheck(std::string op_name, cudaError_t cuda_result);
 
-  void RecordEvent(std::queue<std::pair<std::string, cudaEvent_t>> &event_queue, std::string name, cudaStream_t stream);
+  void RecordEvent(std::queue<std::pair<std::string, cudaEvent_t>>& event_queue, std::string name, cudaStream_t stream);
 
-  void WaitForEvents(std::queue<std::pair<std::string, cudaEvent_t>> &event_queue,
-                     std::vector<TensorTableEntry> &entries, Timeline &timeline);
+  void WaitForEvents(std::queue<std::pair<std::string, cudaEvent_t>>& event_queue,
+                     std::vector<TensorTableEntry>& entries, Timeline& timeline);
 };
 
 class CUDAAllreduce : public AllreduceOp {
 public:
-  CUDAAllreduce(CUDAContext *context,
-                HorovodGlobalState *global_state);
+  CUDAAllreduce(CUDAContext* context,
+                HorovodGlobalState* global_state);
 
-  bool Enabled(ParameterManager &param_manager,
-               std::vector<TensorTableEntry> &entries,
-               const MPIResponse &response) const override;
+  bool Enabled(ParameterManager& param_manager,
+               std::vector<TensorTableEntry>& entries,
+               const MPIResponse& response) const override;
 
 protected:
-  void Initialize(std::vector<TensorTableEntry> &entries, const MPIResponse &response) override;
+  void Initialize(std::vector<TensorTableEntry>& entries, const MPIResponse& response) override;
 
-  void MemcpyInFusionBuffer(void *buffer_data_at_offset, TensorTableEntry &e,
-                            std::vector<TensorTableEntry> &entries) override;
+  void MemcpyInFusionBuffer(void* buffer_data_at_offset, TensorTableEntry& e,
+                            std::vector<TensorTableEntry>& entries) override;
 
-  void MemcpyOutFusionBuffer(void *buffer_data_at_offset, TensorTableEntry &e,
-                             std::vector<TensorTableEntry> &entries) override;
+  void MemcpyOutFusionBuffer(void* buffer_data_at_offset, TensorTableEntry& e,
+                             std::vector<TensorTableEntry>& entries) override;
 
-  void StreamSynchronize(std::vector<TensorTableEntry> &entries) override;
+  void StreamSynchronize(std::vector<TensorTableEntry>& entries) override;
 
-  void InitCUDA(std::vector<TensorTableEntry> &entries);
+  void InitCUDA(std::vector<TensorTableEntry>& entries);
 
-  virtual void InitComm(std::vector<TensorTableEntry> &entries, const std::vector<int32_t> &devices) = 0;
+  virtual void InitComm(std::vector<TensorTableEntry>& entries, const std::vector<int32_t>& devices) = 0;
 
-  struct CUDAContext *cuda_context_;
+  struct CUDAContext* cuda_context_;
 };
 
 // Implementation of the Allreduce operation that does not block using StreamSynchronize after each step
@@ -92,23 +92,23 @@ protected:
 // finalize thread to handle synchronization at the end of the operation.
 class CUDAAllreduceAsync : public CUDAAllreduce {
 public:
-  CUDAAllreduceAsync(CUDAContext *context,
-                     HorovodGlobalState *global_state);
+  CUDAAllreduceAsync(CUDAContext* context,
+                     HorovodGlobalState* global_state);
 
 protected:
-  void Initialize(std::vector<TensorTableEntry> &entries, const MPIResponse &response) override;
+  void Initialize(std::vector<TensorTableEntry>& entries, const MPIResponse& response) override;
 
-  Status Finalize(std::vector<TensorTableEntry> &entries) override;
+  Status Finalize(std::vector<TensorTableEntry>& entries) override;
 
-  void StreamSynchronize(std::vector<TensorTableEntry> &entries) override;
+  void StreamSynchronize(std::vector<TensorTableEntry>& entries) override;
 
-  void RecordEventStart(std::string event_name, std::vector<TensorTableEntry> &entries) override;
+  void RecordEventStart(std::string event_name, std::vector<TensorTableEntry>& entries) override;
 
-  void RecordEventEnd(std::string event_name, std::vector<TensorTableEntry> &entries) override;
+  void RecordEventEnd(std::string event_name, std::vector<TensorTableEntry>& entries) override;
 
   std::queue<std::pair<std::string, cudaEvent_t>> event_queue_;
-  cudaStream_t *stream_;
-  void *host_buffer_;
+  cudaStream_t* stream_;
+  void* host_buffer_;
 };
 
 } // namespace common

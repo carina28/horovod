@@ -32,18 +32,18 @@ struct DDLContext {
 
 class DDLAllreduce : public CUDAAllreduceAsync {
 public:
-  DDLAllreduce(DDLContext *ddl_context,
-               CUDAContext *cuda_context,
-               HorovodGlobalState *global_state);
+  DDLAllreduce(DDLContext* ddl_context,
+               CUDAContext* cuda_context,
+               HorovodGlobalState* global_state);
 
 protected:
-  void InitComm(std::vector<TensorTableEntry> &entries, const std::vector<int32_t> &devices) override;
+  void InitComm(std::vector<TensorTableEntry>& entries, const std::vector<int32_t>& devices) override;
 
-  void Dollreduce(std::vector<TensorTableEntry> &entries,
-                  const void *fused_input_data, void *buffer_data,
-                  int64_t &num_elements, size_t &buffer_len) override;
+  void Dollreduce(std::vector<TensorTableEntry>& entries,
+                  const void* fused_input_data, void* buffer_data,
+                  int64_t& num_elements, size_t& buffer_len) override;
 
-  DDLContext *ddl_context_;
+  DDLContext* ddl_context_;
 };
 
 } // namespace common

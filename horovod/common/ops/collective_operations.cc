@@ -19,31 +19,31 @@
 namespace horovod {
 namespace common {
 
-HorovodOp::HorovodOp(HorovodGlobalState *global_state) : global_state_(global_state) {}
+HorovodOp::HorovodOp(HorovodGlobalState* global_state) : global_state_(global_state) {}
 
 // Allreduce
-AllreduceOp::AllreduceOp(HorovodGlobalState *global_state) : HorovodOp(global_state) {}
+AllreduceOp::AllreduceOp(HorovodGlobalState* global_state) : HorovodOp(global_state) {}
 
-Status AllreduceOp::Execute(std::vector<TensorTableEntry> &entries, const MPIResponse &response) {
-  auto &first_entry = entries[0];
+Status AllreduceOp::Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response) {
+  auto& first_entry = entries[0];
 
   Initialize(entries, response);
 
-  const void *fused_input_data;
-  void *buffer_data;
+  const void* fused_input_data;
+  void* buffer_data;
   size_t buffer_len;
 
   // Copy memory into the fusion buffer.
   if (entries.size() > 1) {
     // Access the fusion buffer.
-    auto &buffer = global_state_->fusion_buffer.GetBuffer(
+    auto& buffer = global_state_->fusion_buffer.GetBuffer(
         first_entry.device, first_entry.context->framework());
-    buffer_data = const_cast<void *>(buffer->AccessData(first_entry.context));
+    buffer_data = const_cast<void*>(buffer->AccessData(first_entry.context));
 
     RecordEventStart(MEMCPY_IN_FUSION_BUFFER, entries);
     int64_t offset = 0;
-    for (auto &e : entries) {
-      void *buffer_data_at_offset = (uint8_t *) buffer_data + offset;
+    for (auto& e : entries) {
+      void* buffer_data_at_offset = (uint8_t*) buffer_data + offset;
       MemcpyInFusionBuffer(buffer_data_at_offset, e, entries);
       offset += e.tensor->size();
     }
@@ -57,12 +57,12 @@ Status AllreduceOp::Execute(std::vector<TensorTableEntry> &entries, const MPIRes
     fused_input_data = buffer_data;
   } else {
     fused_input_data = first_entry.tensor->data();
-    buffer_data = (void *) first_entry.output->data();
+    buffer_data = (void*) first_entry.output->data();
     buffer_len = (size_t) first_entry.output->size();
   }
 
   int64_t num_elements = 0;
-  for (auto &e : entries) {
+  for (auto& e : entries) {
     num_elements += e.tensor->shape().num_elements();
   }
 
@@ -73,8 +73,8 @@ Status AllreduceOp::Execute(std::vector<TensorTableEntry> &entries, const MPIRes
   if (entries.size() > 1) {
     RecordEventStart(MEMCPY_OUT_FUSION_BUFFER, entries);
     int64_t offset = 0;
-    for (auto &e : entries) {
-      void *buffer_data_at_offset = (uint8_t *) buffer_data + offset;
+    for (auto& e : entries) {
+      void* buffer_data_at_offset = (uint8_t*) buffer_data + offset;
       MemcpyOutFusionBuffer(buffer_data_at_offset, e, entries);
       offset += e.tensor->size();
     }
@@ -86,62 +86,62 @@ Status AllreduceOp::Execute(std::vector<TensorTableEntry> &entries, const MPIRes
   return Finalize(entries);
 }
 
-void AllreduceOp::Initialize(std::vector<TensorTableEntry> &entries, const MPIResponse &response) {
+void AllreduceOp::Initialize(std::vector<TensorTableEntry>& entries, const MPIResponse& response) {
 }
 
-Status AllreduceOp::Finalize(std::vector<TensorTableEntry> &entries) {
+Status AllreduceOp::Finalize(std::vector<TensorTableEntry>& entries) {
   return Status::OK();
 }
 
-void AllreduceOp::MemcpyInFusionBuffer(void *buffer_data_at_offset, TensorTableEntry &e,
-                                       std::vector<TensorTableEntry> &entries) {
+void AllreduceOp::MemcpyInFusionBuffer(void* buffer_data_at_offset, TensorTableEntry& e,
+                                       std::vector<TensorTableEntry>& entries) {
   std::memcpy(buffer_data_at_offset, e.tensor->data(),
               (size_t) e.tensor->size());
 }
 
-void AllreduceOp::MemcpyOutFusionBuffer(void *buffer_data_at_offset, TensorTableEntry &e,
-                                        std::vector<TensorTableEntry> &entries) {
-  std::memcpy((void *) e.output->data(), buffer_data_at_offset,
+void AllreduceOp::MemcpyOutFusionBuffer(void* buffer_data_at_offset, TensorTableEntry& e,
+                                        std::vector<TensorTableEntry>& entries) {
+  std::memcpy((void*) e.output->data(), buffer_data_at_offset,
               (size_t) e.tensor->size());
 }
 
-void AllreduceOp::StreamSynchronize(std::vector<TensorTableEntry> &entries) {
+void AllreduceOp::StreamSynchronize(std::vector<TensorTableEntry>& entries) {
 }
 
-void AllreduceOp::RecordEventStart(std::string event_name, std::vector<TensorTableEntry> &entries) {
+void AllreduceOp::RecordEventStart(std::string event_name, std::vector<TensorTableEntry>& entries) {
   global_state_->timeline.ActivityStartAll(entries, event_name);
 }
 
-void AllreduceOp::RecordEventEnd(std::string event_name, std::vector<TensorTableEntry> &entries) {
+void AllreduceOp::RecordEventEnd(std::string event_name, std::vector<TensorTableEntry>& entries) {
   global_state_->timeline.ActivityEndAll(entries);
 }
 
 // Allgather
-AllgatherOp::AllgatherOp(HorovodGlobalState *global_state) : HorovodOp(global_state) {}
+AllgatherOp::AllgatherOp(HorovodGlobalState* global_state) : HorovodOp(global_state) {}
 
-Status AllgatherOp::Execute(std::vector<TensorTableEntry> &entries, const MPIResponse &response) {
-  auto &timeline = global_state_->timeline;
+Status AllgatherOp::Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response) {
+  auto& timeline = global_state_->timeline;
 
   // Sizes of subcomponents of each entry from all ranks
-  auto **entry_component_sizes = new int64_t *[entries.size()];
+  auto** entry_component_sizes = new int64_t* [entries.size()];
 
   // Offset of each subcomponent of every entry in the final buffer after
   // allgatherv
-  auto **entry_component_offsets = new int64_t *[entries.size()];
+  auto** entry_component_offsets = new int64_t* [entries.size()];
 
-  auto *recvcounts = new int[global_state_->size]();
-  auto *displcmnts = new int[global_state_->size]();
+  auto* recvcounts = new int[global_state_->size]();
+  auto* displcmnts = new int[global_state_->size]();
 
   for (size_t ec = 0; ec < entries.size(); ++ec) {
     entry_component_sizes[ec] = new int64_t[global_state_->size]();
     entry_component_offsets[ec] = new int64_t[global_state_->size]();
   }
 
-  auto &first_entry = entries[0];
+  auto& first_entry = entries[0];
 
   timeline.ActivityStartAll(entries, ALLOCATE_OUTPUT);
   for (size_t ec = 0; ec < entries.size(); ++ec) {
-    auto &e = entries[ec];
+    auto& e = entries[ec];
     // Every tensor participating in Allgather operation may have different
     // first dimension size, but the rest of dimensions are same for all
     // tensors.  Here we get shape of tensor sliced by first dimension.
@@ -153,7 +153,7 @@ Status AllgatherOp::Execute(std::vector<TensorTableEntry> &entries, const MPIRes
     // Copy tensor sizes from the MPI response into a vector of int64_t
     // and compute total size.  This is size of first dimension.
     int64_t total_entry_dimension_size = 0;
-    const auto &tensor_sizes = response.tensor_sizes();
+    const auto& tensor_sizes = response.tensor_sizes();
     for (int rc = 0; rc < global_state_->size; ++rc) {
       auto component_size = tensor_sizes[ec * global_state_->size + rc];
       total_entry_dimension_size += component_size;
@@ -208,30 +208,30 @@ Status AllgatherOp::Execute(std::vector<TensorTableEntry> &entries, const MPIRes
   return Status::OK();
 }
 
-void AllgatherOp::DoAllgather(std::vector<TensorTableEntry> &entries, int *recvcounts, int *displcmnts,
-                              int64_t **entry_component_offsets, int64_t **entry_component_sizes,
+void AllgatherOp::DoAllgather(std::vector<TensorTableEntry>& entries, int* recvcounts, int* displcmnts,
+                              int64_t** entry_component_offsets, int64_t** entry_component_sizes,
                               int64_t total_size, int element_size) {
   // Data is at the CPU and hierarchical allgather is disabled, or
   // Data is at the GPU and HOROVOD_GPU_ALLGATHER == MPI
-  auto &timeline = global_state_->timeline;
-  auto &first_entry = entries[0];
+  auto& timeline = global_state_->timeline;
+  auto& first_entry = entries[0];
 
-  const void *sendbuf = nullptr;
+  const void* sendbuf = nullptr;
   int64_t total_num_elements = 0;
-  void *buffer_data;
+  void* buffer_data;
 
   if (entries.size() > 1) {
-    auto &buffer = global_state_->fusion_buffer.GetBuffer(
+    auto& buffer = global_state_->fusion_buffer.GetBuffer(
         first_entry.device, first_entry.context->framework());
-    buffer_data = const_cast<void *>(buffer->AccessData(first_entry.context));
+    buffer_data = const_cast<void*>(buffer->AccessData(first_entry.context));
 
     // Copy memory into the fusion buffer. Then the input data of each
     // process is assumed to be in the area where that process would
     // receive its own contribution to the receive buffer.
     timeline.ActivityStartAll(entries, MEMCPY_IN_FUSION_BUFFER);
     int64_t offset = displcmnts[global_state_->rank] * element_size;
-    for (auto &e : entries) {
-      void *buffer_data_at_offset = (uint8_t *) buffer_data + offset;
+    for (auto& e : entries) {
+      void* buffer_data_at_offset = (uint8_t*) buffer_data + offset;
       std::memcpy(buffer_data_at_offset, e.tensor->data(),
                   (size_t) e.tensor->size());
       offset += e.tensor->size();
@@ -241,7 +241,7 @@ void AllgatherOp::DoAllgather(std::vector<TensorTableEntry> &entries, int *recvc
   } else {
     sendbuf = first_entry.tensor->data();
     total_num_elements = first_entry.tensor->shape().num_elements();
-    buffer_data = (void *) first_entry.output->data();
+    buffer_data = (void*) first_entry.output->data();
   }
 
   DoAllgatherv(entries, sendbuf, (int) total_num_elements,
@@ -253,12 +253,12 @@ void AllgatherOp::DoAllgather(std::vector<TensorTableEntry> &entries, int *recvc
     timeline.ActivityStartAll(entries, MEMCPY_OUT_FUSION_BUFFER);
     // Copy memory out of the fusion buffer.
     for (size_t ec = 0; ec < entries.size(); ++ec) {
-      auto &e = entries[ec];
+      auto& e = entries[ec];
       int64_t copy_offset = 0;
       for (int rc = 0; rc < global_state_->size; ++rc) {
-        std::memcpy((void *) ((uint8_t *) e.output->data() + copy_offset),
-                    (void *) ((uint8_t *) buffer_data +
-                              entry_component_offsets[ec][rc] * element_size),
+        std::memcpy((void*) ((uint8_t*) e.output->data() + copy_offset),
+                    (void*) ((uint8_t*) buffer_data +
+                             entry_component_offsets[ec][rc] * element_size),
                     (size_t) entry_component_sizes[ec][rc] * element_size);
 
         copy_offset += entry_component_sizes[ec][rc] * element_size;
@@ -278,18 +278,18 @@ void AllgatherOp::DoAllgather(std::vector<TensorTableEntry> &entries, int *recvc
   delete[] entry_component_offsets;
 }
 
-BroadcastOp::BroadcastOp(HorovodGlobalState *global_state) : HorovodOp(global_state) {}
+BroadcastOp::BroadcastOp(HorovodGlobalState* global_state) : HorovodOp(global_state) {}
 
-Status BroadcastOp::Execute(std::vector<TensorTableEntry> &entries, const MPIResponse &response) {
+Status BroadcastOp::Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response) {
   assert(entries.size() == 1);
   auto e = entries[0];
 
   // On root rank, MPI_Bcast sends data, on other ranks it receives data.
-  void *data_ptr;
+  void* data_ptr;
   if (global_state_->rank == e.root_rank) {
-    data_ptr = (void *) e.tensor->data();
+    data_ptr = (void*) e.tensor->data();
   } else {
-    data_ptr = (void *) e.output->data();
+    data_ptr = (void*) e.output->data();
   }
 
   DoBroadcast(entries, data_ptr, (int) e.tensor->shape().num_elements(), e.tensor->dtype(), e.root_rank);
@@ -297,26 +297,26 @@ Status BroadcastOp::Execute(std::vector<TensorTableEntry> &entries, const MPIRes
   return Status::OK();
 }
 
-bool BroadcastOp::Enabled(ParameterManager &param_manager,
-                          std::vector<TensorTableEntry> &entries,
-                          const MPIResponse &response) const {
+bool BroadcastOp::Enabled(ParameterManager& param_manager,
+                          std::vector<TensorTableEntry>& entries,
+                          const MPIResponse& response) const {
   return true;
 }
 
-ErrorOp::ErrorOp(HorovodGlobalState *global_state) : HorovodOp(global_state) {}
+ErrorOp::ErrorOp(HorovodGlobalState* global_state) : HorovodOp(global_state) {}
 
-Status ErrorOp::Execute(std::vector<TensorTableEntry> &entries, const MPIResponse &response) {
+Status ErrorOp::Execute(std::vector<TensorTableEntry>& entries, const MPIResponse& response) {
   assert(entries.size() == 1);
   auto e = entries[0];
   return Status::PreconditionError(response.error_message());
 }
 
-HierarchicalAllgather::HierarchicalAllgather(HorovodGlobalState *global_state) : AllgatherOp(global_state) {}
+HierarchicalAllgather::HierarchicalAllgather(HorovodGlobalState* global_state) : AllgatherOp(global_state) {}
 
-void HierarchicalAllgather::DoAllgather(std::vector<TensorTableEntry> &entries, int *recvcounts, int *displcmnts,
-                                        int64_t **entry_component_offsets, int64_t **entry_component_sizes,
+void HierarchicalAllgather::DoAllgather(std::vector<TensorTableEntry>& entries, int* recvcounts, int* displcmnts,
+                                        int64_t** entry_component_offsets, int64_t** entry_component_sizes,
                                         int64_t total_size, int element_size) {
-  auto &timeline = global_state_->timeline;
+  auto& timeline = global_state_->timeline;
 
   // If shared buffer is not initialized or is not large enough, reallocate
   int64_t total_size_in_bytes = total_size * element_size;
@@ -331,8 +331,8 @@ void HierarchicalAllgather::DoAllgather(std::vector<TensorTableEntry> &entries, 
 
   // Compute cross-node allgather displacements and recvcounts for
   // homogeneous/parallelized case
-  auto *cross_recvcounts = new int[global_state_->cross_size]();
-  auto *cross_displcmnts = new int[global_state_->cross_size]();
+  auto* cross_recvcounts = new int[global_state_->cross_size]();
+  auto* cross_displcmnts = new int[global_state_->cross_size]();
 
   if (global_state_->is_homogeneous) {
     for (int i = 0; i < global_state_->cross_size; ++i) {
@@ -356,9 +356,9 @@ void HierarchicalAllgather::DoAllgather(std::vector<TensorTableEntry> &entries, 
 
   timeline.ActivityStartAll(entries, MEMCPY_IN_SHARED_BUFFER);
   for (size_t ec = 0; ec < entries.size(); ++ec) {
-    auto &e = entries[ec];
-    void *shared_buffer_at_offset =
-        (uint8_t *) global_state_->shared_buffer +
+    auto& e = entries[ec];
+    void* shared_buffer_at_offset =
+        (uint8_t*) global_state_->shared_buffer +
         entry_component_offsets[ec][global_state_->rank] * element_size;
 
     // CPU copy to shared buffer
@@ -369,7 +369,7 @@ void HierarchicalAllgather::DoAllgather(std::vector<TensorTableEntry> &entries, 
   Barrier();
   timeline.ActivityEndAll(entries);
 
-  auto &first_entry = entries[0];
+  auto& first_entry = entries[0];
   DoAllgatherv(entries,
                nullptr, 0, DataType::HOROVOD_NULL, global_state_->shared_buffer,
                cross_recvcounts, cross_displcmnts, first_entry.tensor->dtype());
@@ -377,13 +377,13 @@ void HierarchicalAllgather::DoAllgather(std::vector<TensorTableEntry> &entries, 
   // Copy memory out of the fusion buffer.
   timeline.ActivityStartAll(entries, MEMCPY_OUT_FUSION_BUFFER);
   for (size_t ec = 0; ec < entries.size(); ++ec) {
-    auto &e = entries[ec];
+    auto& e = entries[ec];
     int64_t copy_offset = 0;
     for (int rc = 0; rc < global_state_->size; ++rc) {
       auto entry_component_size = entry_component_sizes[ec][rc];
-      std::memcpy((void *) ((uint8_t *) e.output->data() + copy_offset),
-                  (void *) ((uint8_t *) global_state_->shared_buffer +
-                            entry_component_size * element_size),
+      std::memcpy((void*) ((uint8_t*) e.output->data() + copy_offset),
+                  (void*) ((uint8_t*) global_state_->shared_buffer +
+                           entry_component_size * element_size),
                   (size_t) entry_component_size * element_size);
       copy_offset += entry_component_size * element_size;
     }

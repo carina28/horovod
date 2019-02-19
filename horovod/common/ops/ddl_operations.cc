@@ -29,15 +29,15 @@ DDL_Type GetDDLDataType(const std::shared_ptr<Tensor> tensor) {
   }
 }
 
-DDLAllreduce::DDLAllreduce(DDLContext *ddl_context,
-                           CUDAContext *cuda_context,
-                           HorovodGlobalState *global_state)
+DDLAllreduce::DDLAllreduce(DDLContext* ddl_context,
+                           CUDAContext* cuda_context,
+                           HorovodGlobalState* global_state)
     : CUDAAllreduceAsync(cuda_context, global_state),
       ddl_context_(ddl_context) {}
 
-void DDLAllreduce::InitComm(std::vector<TensorTableEntry> &entries, const std::vector<int32_t> &devices) {
-  auto &timeline = global_state_->timeline;
-  auto &first_entry = entries[0];
+void DDLAllreduce::InitComm(std::vector<TensorTableEntry>& entries, const std::vector<int32_t>& devices) {
+  auto& timeline = global_state_->timeline;
+  auto& first_entry = entries[0];
   if (!ddl_context_->ddl_initialized) {
     // Initialize DDL
     auto ddl_options = std::getenv("DDL_OPTIONS");
@@ -56,9 +56,9 @@ void DDLAllreduce::InitComm(std::vector<TensorTableEntry> &entries, const std::v
   }
 }
 
-void DDLAllreduce::DoAllreduce(std::vector<TensorTableEntry> &entries
-                               const void *fused_input_data, void *buffer_data,
-                               int64_t &num_elements, size_t &buffer_len) {
+void DDLAllreduce::DoAllreduce(std::vector<TensorTableEntry>& entries
+                               const void* fused_input_data, void* buffer_data,
+                               int64_t& num_elements, size_t& buffer_len) {
   if (entries.size() == 1) {
     // Copy input buffer content to output buffer
     // because DDL only supports in-place allreduce
@@ -69,10 +69,10 @@ void DDLAllreduce::DoAllreduce(std::vector<TensorTableEntry> &entries
   }
 
   // Synchronize.
-  auto &timeline = global_state_->timeline;
+  auto& timeline = global_state_->timeline;
   cuda_context_->WaitForEvents(event_queue_, entries, timeline);
 
-  auto &first_entry = entries[0];
+  auto& first_entry = entries[0];
   DDL_Type ddl_data_type = GetDDLDataType(first_entry.tensor);
   auto ddl_result = ddl_allreduce(buffer_data, (size_t) num_elements, ddl_data_type,
                                   DDL_OP_SUM);
